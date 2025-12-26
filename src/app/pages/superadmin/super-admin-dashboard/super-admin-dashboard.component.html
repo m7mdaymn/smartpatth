@@ -1,0 +1,95 @@
+<div class="super-admin-container">
+  <div class="header">
+    <h1>لوحة التحكم</h1>
+    <p>مراقبة نظام المنصة الشاملة</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card blue-gradient">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <h3>إجمالي العملاء</h3>
+        <p class="stat-value">{{ systemData.totalCustomers }}</p>
+        <span class="stat-label">عميل نشط</span>
+      </div>
+    </div>
+
+    <div class="stat-card green-gradient">
+      <div class="stat-icon">🏪</div>
+      <div class="stat-content">
+        <h3>المتاجر النشطة</h3>
+        <p class="stat-value">{{ systemData.totalMerchants }}</p>
+        <span class="stat-label">متجر مغسلة</span>
+      </div>
+    </div>
+
+    <div class="stat-card orange-gradient">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <h3>الإيرادات الكلية</h3>
+        <p class="stat-value">{{ systemData.totalRevenue | number }}</p>
+        <span class="stat-label">ريال سعودي</span>
+      </div>
+    </div>
+
+    <div class="stat-card purple-gradient">
+      <div class="stat-icon">🚗</div>
+      <div class="stat-content">
+        <h3>الغسلات النشطة</h3>
+        <p class="stat-value">{{ systemData.activeWashes }}</p>
+        <span class="stat-label">غسلة حالية</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Metrics -->
+  <div class="metrics-section">
+    <h2>مقاييس النظام</h2>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">نمو شهري</span>
+        <span class="metric-value">{{ systemData.stats.monthlyGrowth }}%</span>
+        <span class="metric-icon">📈</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">توفر النظام</span>
+        <span class="metric-value">{{ systemData.stats.systemUptime }}%</span>
+        <span class="metric-icon">⚡</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">متوسط التحويل</span>
+        <span class="metric-value">{{ systemData.stats.avgTransactionValue | number }}</span>
+        <span class="metric-icon">💳</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">إجمالي المعاملات</span>
+        <span class="metric-value">{{ systemData.stats.totalTransactions | number }}</span>
+        <span class="metric-icon">📊</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Navigation -->
+  <div class="navigation-section">
+    <h2>التحكم السريع</h2>
+    <div class="nav-grid">
+      <button class="nav-btn" (click)="navigateTo('customers')">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">إدارة العملاء</span>
+      </button>
+      <button class="nav-btn" (click)="navigateTo('merchant-details')">
+        <span class="nav-icon">🏪</span>
+        <span class="nav-text">تفاصيل المتاجر</span>
+      </button>
+      <button class="nav-btn" (click)="navigateTo('system-revenue')">
+        <span class="nav-icon">💰</span>
+        <span class="nav-text">الإيرادات</span>
+      </button>
+      <button class="nav-btn" (click)="navigateTo('super-admin-dashboard')">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">الإعدادات</span>
+      </button>
+    </div>
+  </div>
+</div>

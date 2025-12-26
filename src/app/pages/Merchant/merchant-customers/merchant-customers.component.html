@@ -1,0 +1,43 @@
+<div class="customers-container" dir="rtl">
+  <div class="customers-header">
+    <h1>إدارة العملاء</h1>
+    <input type="text" 
+           [(ngModel)]="searchTerm" 
+           (input)="searchCustomers()"
+           placeholder="ابحث عن عميل..." 
+           class="search-input">
+  </div>
+
+  <div class="loader" *ngIf="isLoading"></div>
+
+  <div *ngIf="!isLoading && filteredCustomers.length > 0" class="customers-table">
+    <div class="table-header">
+      <div class="col-name">الاسم</div>
+      <div class="col-phone">الجوال</div>
+      <div class="col-washes">الغسلات</div>
+      <div class="col-points">النقاط</div>
+      <div class="col-last">آخر غسلة</div>
+      <div class="col-status">الحالة</div>
+    </div>
+
+    <div class="table-body">
+      <div *ngFor="let customer of filteredCustomers" class="table-row">
+        <div class="col-name">{{ customer.name }}</div>
+        <div class="col-phone">{{ customer.phone }}</div>
+        <div class="col-washes">{{ customer.totalWashes }}</div>
+        <div class="col-points">{{ customer.loyaltyPoints }}</div>
+        <div class="col-last">{{ customer.lastWash }}</div>
+        <div class="col-status">
+          <span [ngClass]="'badge-' + customer.status">
+            {{ getStatusBadge(customer.status) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && filteredCustomers.length === 0" class="empty-state">
+    <span class="empty-icon">😕</span>
+    <p>لم يتم العثور على عملاء</p>
+  </div>
+</div>

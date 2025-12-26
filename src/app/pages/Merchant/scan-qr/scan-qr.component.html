@@ -1,0 +1,58 @@
+<div class="scan-qr-container" dir="rtl">
+  <div class="scan-header">
+    <h1>ماسح رمز QR</h1>
+  </div>
+
+  <div class="scan-section">
+    <div class="scan-input-group">
+      <label>أدخل رمز QR</label>
+      <div class="input-wrapper">
+        <input type="text" 
+               [(ngModel)]="qrInput" 
+               (keyup.enter)="scanQR()"
+               placeholder="الصق أو اكتب رمز QR هنا"
+               class="qr-input">
+        <button (click)="scanQR()" [disabled]="isScanning" class="scan-btn">
+          {{ isScanning ? 'جاري المعالجة...' : 'مسح' }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="lastScanResult" class="scan-result" [ngClass]="'result-' + lastScanResult.status">
+      <div class="result-icon">{{ lastScanResult.status === 'success' ? '✅' : '❌' }}</div>
+      <h3>{{ lastScanResult.customerName }}</h3>
+      <p class="qr-code">{{ lastScanResult.qrCode }}</p>
+      <div class="service-details">
+        <span>{{ lastScanResult.serviceType }}</span>
+        <span>{{ lastScanResult.amount }} ريال</span>
+      </div>
+      <p class="timestamp">{{ lastScanResult.timestamp }}</p>
+    </div>
+  </div>
+
+  <div class="scan-history">
+    <div class="history-header">
+      <h3>سجل المسحات</h3>
+      <button (click)="clearHistory()" class="clear-btn" *ngIf="scanHistory.length > 0">حذف السجل</button>
+    </div>
+
+    <div class="history-list">
+      <div *ngFor="let item of scanHistory" class="history-item" [ngClass]="'item-' + item.status">
+        <div class="item-header">
+          <h4>{{ item.customerName }}</h4>
+          <span class="status-badge" [ngClass]="item.status">{{ item.status === 'success' ? '✓' : '✕' }}</span>
+        </div>
+        <p class="qr-code">{{ item.qrCode }}</p>
+        <div class="item-footer">
+          <span>{{ item.serviceType }} - {{ item.amount }} ريال</span>
+          <span class="time">{{ item.timestamp }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="scanHistory.length === 0" class="empty-history">
+      <span class="empty-icon">📭</span>
+      <p>لا توجد مسحات بعد</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,109 @@
+<div class="revenue-container">
+  <div class="header">
+    <h1>الإيرادات والمحاليل</h1>
+    <p>تحليل شامل لإيرادات المنصة</p>
+  </div>
+
+  <!-- Key Metrics -->
+  <div class="key-metrics">
+    <div class="metric-box blue-gradient">
+      <span class="metric-icon">💰</span>
+      <div class="metric-info">
+        <h3>إجمالي الإيرادات</h3>
+        <p class="metric-value">{{ monthlyStats.totalRevenue | number }} ر.س</p>
+      </div>
+    </div>
+
+    <div class="metric-box green-gradient">
+      <span class="metric-icon">📊</span>
+      <div class="metric-info">
+        <h3>عدد المعاملات</h3>
+        <p class="metric-value">{{ monthlyStats.totalTransactions | number }}</p>
+      </div>
+    </div>
+
+    <div class="metric-box orange-gradient">
+      <span class="metric-icon">💳</span>
+      <div class="metric-info">
+        <h3>متوسط المعاملة</h3>
+        <p class="metric-value">{{ monthlyStats.avgTransactionValue | number }} ر.س</p>
+      </div>
+    </div>
+
+    <div class="metric-box purple-gradient">
+      <span class="metric-icon">📈</span>
+      <div class="metric-info">
+        <h3>النمو الشهري</h3>
+        <p class="metric-value">{{ monthlyStats.monthlyGrowth }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue Data Table -->
+  <div class="revenue-section">
+    <h2>سجل الإيرادات اليومية</h2>
+    <div class="table-container">
+      <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+      </div>
+
+      <div *ngIf="!isLoading && revenueData.length > 0" class="table-wrapper">
+        <table class="revenue-table">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الإيرادات</th>
+              <th>عدد العملاء</th>
+              <th>عدد المتاجر</th>
+              <th>عدد المعاملات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let data of revenueData" class="table-row">
+              <td>{{ data.date }}</td>
+              <td class="revenue-cell">{{ data.totalRevenue | number }} ر.س</td>
+              <td>{{ data.customerCount }}</td>
+              <td>{{ data.merchantCount }}</td>
+              <td>{{ data.transactionCount }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue Breakdown -->
+  <div class="breakdown-section">
+    <h2>توزيع الإيرادات</h2>
+    <div class="breakdown-grid">
+      <div class="breakdown-card">
+        <span class="breakdown-icon">🏪</span>
+        <h3>حسب المتجر</h3>
+        <p class="breakdown-desc">أعلى 5 متاجر بالإيرادات</p>
+        <button class="view-btn">عرض</button>
+      </div>
+
+      <div class="breakdown-card">
+        <span class="breakdown-icon">🛠️</span>
+        <h3>حسب الخدمة</h3>
+        <p class="breakdown-desc">توزيع الخدمات المستخدمة</p>
+        <button class="view-btn">عرض</button>
+      </div>
+
+      <div class="breakdown-card">
+        <span class="breakdown-icon">💳</span>
+        <h3>طرق الدفع</h3>
+        <p class="breakdown-desc">توزيع طرق الدفع</p>
+        <button class="view-btn">عرض</button>
+      </div>
+
+      <div class="breakdown-card">
+        <span class="breakdown-icon">📅</span>
+        <h3>الاتجاهات الشهرية</h3>
+        <p class="breakdown-desc">النمو عبر الأشهر</p>
+        <button class="view-btn">عرض</button>
+      </div>
+    </div>
+  </div>
+</div>

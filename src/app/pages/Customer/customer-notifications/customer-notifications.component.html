@@ -1,0 +1,36 @@
+<div class="notifications-container" dir="rtl">
+  <div class="notifications-header">
+    <h1>التنبيهات</h1>
+    <div class="header-actions">
+      <span class="unread-badge">{{ getUnreadCount() }} جديد</span>
+      <button (click)="markAllAsRead()" class="action-btn">علّم الكل كمقروء</button>
+    </div>
+  </div>
+
+  <div class="loader" *ngIf="isLoading"></div>
+
+  <div *ngIf="!isLoading && notifications.length === 0" class="empty-state">
+    <span class="empty-icon">📭</span>
+    <p>لا توجد تنبيهات حالياً</p>
+  </div>
+
+  <div *ngIf="!isLoading && notifications.length > 0" class="notifications-list">
+    <div *ngFor="let notification of notifications" 
+         class="notification-item"
+         [class.unread]="!notification.read"
+         [ngClass]="'notification-' + notification.type"
+         (click)="markAsRead(notification)">
+      <div class="notification-icon">{{ notification.icon }}</div>
+      <div class="notification-content">
+        <h3>{{ notification.title }}</h3>
+        <p>{{ notification.message }}</p>
+        <span class="timestamp">{{ notification.timestamp }}</span>
+      </div>
+      <button (click)="deleteNotification(notification.id); $event.stopPropagation()" class="delete-btn">✕</button>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && notifications.length > 0" class="clear-all">
+    <button (click)="clearAll()" class="clear-btn">حذف الكل</button>
+  </div>
+</div>

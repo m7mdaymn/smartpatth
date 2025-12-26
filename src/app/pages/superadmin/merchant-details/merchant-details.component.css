@@ -1,0 +1,306 @@
+.merchant-details-container {
+  direction: rtl;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  color: #718096;
+}
+
+/* Search Section */
+.search-section {
+  margin-bottom: 2rem;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-box input {
+  width: 100%;
+  max-width: 500px;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 1rem;
+  font-size: 1rem;
+  color: #718096;
+}
+
+/* Merchants Grid */
+.merchants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.merchant-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.5s ease-out;
+  transition: all 0.3s ease;
+}
+
+.merchant-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Header */
+.card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+/* Card Body */
+.card-body {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.info-row .label {
+  color: #718096;
+  font-weight: 600;
+}
+
+.info-row .value {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+/* Card Stats */
+.card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f7fafc;
+}
+
+.stat {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.stat-icon {
+  font-size: 1.5rem;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2d3748;
+  margin: 0;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #718096;
+  margin: 0;
+}
+
+/* Card Footer */
+.card-footer {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+}
+
+.action-btn,
+.view-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.action-btn.suspend {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.action-btn.suspend:hover {
+  background: #fca5a5;
+  color: white;
+}
+
+.action-btn.activate {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.action-btn.activate:hover {
+  background: #6ee7b7;
+  color: white;
+}
+
+.view-btn {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.view-btn:hover {
+  background: #bfdbfe;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.status-badge.suspended {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  grid-column: 1 / -1;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading p {
+  margin-top: 1rem;
+  color: #718096;
+}
+
+/* No Results */
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #718096;
+  grid-column: 1 / -1;
+}
+
+.no-results-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .merchant-details-container {
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
+  .merchants-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-box input {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .card-footer {
+    flex-direction: column;
+  }
+
+  .action-btn,
+  .view-btn {
+    width: 100%;
+  }
+}

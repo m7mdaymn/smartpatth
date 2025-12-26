@@ -1,0 +1,69 @@
+<div class="wallet-container" dir="rtl">
+  <div *ngIf="successMessage" class="success-alert">{{ successMessage }}</div>
+
+  <div class="wallet-header">
+    <div class="balance-card">
+      <h2>رصيدك</h2>
+      <div class="balance-amount">{{ balance }} ريال</div>
+      <button (click)="openAddFundsModal()" class="add-funds-btn">إضافة رصيد</button>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <h3>إضافة سريعة</h3>
+    <div class="quick-buttons">
+      <button *ngFor="let amount of [50, 100, 200, 500]" 
+              (click)="quickAddAmount(amount)"
+              class="quick-btn">
+        {{ amount }} ريال
+      </button>
+    </div>
+  </div>
+
+  <div class="transactions-section">
+    <h3>المعاملات</h3>
+    <div class="loader" *ngIf="isLoading"></div>
+    <div class="transactions-list" *ngIf="!isLoading">
+      <div *ngFor="let trans of transactions" class="transaction-item" [ngClass]="trans.type">
+        <div class="trans-icon">
+          {{ trans.type === 'credit' ? '➕' : '➖' }}
+        </div>
+        <div class="trans-details">
+          <h4>{{ trans.description }}</h4>
+          <p>{{ trans.date }}</p>
+          <small *ngIf="trans.paymentMethod">الطريقة: {{ trans.paymentMethod }}</small>
+        </div>
+        <div class="trans-amount">
+          <div class="amount" [ngClass]="trans.type">{{ trans.type === 'credit' ? '+' : '-' }}{{ trans.amount }}</div>
+          <div class="balance">الرصيد: {{ trans.balance }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Funds Modal -->
+  <div *ngIf="showAddFundsModal" class="modal-overlay" (click)="closeAddFundsModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button (click)="closeAddFundsModal()" class="modal-close">✕</button>
+      <h3>إضافة رصيد</h3>
+
+      <div class="amount-input-section">
+        <label>المبلغ (ريال)</label>
+        <input type="number" [(ngModel)]="addFundsAmount" placeholder="أدخل المبلغ" min="1">
+      </div>
+
+      <div class="payment-method-section">
+        <label>طريقة الدفع</label>
+        <select [(ngModel)]="selectedPaymentMethod" class="payment-select">
+          <option *ngFor="let method of paymentMethods" [ngValue]="method">
+            {{ method.icon }} {{ method.name }}
+          </option>
+        </select>
+      </div>
+
+      <button (click)="addFunds()" [disabled]="isLoading" class="confirm-btn">
+        {{ isLoading ? 'جاري المعالجة...' : 'تأكيد الإضافة' }}
+      </button>
+    </div>
+  </div>
+</div>

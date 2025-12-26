@@ -1,0 +1,97 @@
+<div class="settings-container" dir="rtl">
+  <div *ngIf="successMessage" class="success-alert">{{ successMessage }}</div>
+
+  <div class="settings-header">
+    <h1>إعدادات المحل</h1>
+    <button (click)="toggleEditMode()" [ngClass]="{'edit-mode': editMode}" class="edit-btn">
+      {{ editMode ? 'إلغاء' : 'تعديل' }}
+    </button>
+  </div>
+
+  <div class="settings-form" *ngIf="editMode">
+    <div class="form-section">
+      <h3>معلومات المحل</h3>
+      <div class="form-group">
+        <label>اسم المحل</label>
+        <input type="text" [(ngModel)]="settings.businessName">
+      </div>
+      <div class="form-group">
+        <label>رقم الجوال</label>
+        <input type="tel" [(ngModel)]="settings.businessPhone">
+      </div>
+      <div class="form-group">
+        <label>البريد الإلكتروني</label>
+        <input type="email" [(ngModel)]="settings.businessEmail">
+      </div>
+      <div class="form-group">
+        <label>الموقع</label>
+        <input type="text" [(ngModel)]="settings.businessLocation">
+      </div>
+      <div class="form-group">
+        <label>ساعات العمل</label>
+        <input type="text" [(ngModel)]="settings.businessHours" placeholder="08:00 - 20:00">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>إعدادات الولاء</h3>
+      <div class="form-group">
+        <label>معدل النقاط (نقطة لكل ريال)</label>
+        <input type="number" [(ngModel)]="settings.loyaltyPointsRate" min="0.1" step="0.1">
+      </div>
+      <div class="form-group checkbox">
+        <label>
+          <input type="checkbox" [(ngModel)]="settings.notificationsEnabled">
+          تفعيل الإشعارات
+        </label>
+      </div>
+    </div>
+
+    <button (click)="saveSettings()" [disabled]="isLoading" class="save-btn">
+      {{ isLoading ? 'جاري الحفظ...' : 'حفظ الإعدادات' }}
+    </button>
+  </div>
+
+  <div class="settings-display" *ngIf="!editMode">
+    <div class="setting-card">
+      <h3>معلومات المحل</h3>
+      <div class="setting-item">
+        <span class="label">اسم المحل:</span>
+        <span class="value">{{ settings.businessName }}</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">رقم الجوال:</span>
+        <span class="value">{{ settings.businessPhone }}</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">البريد الإلكتروني:</span>
+        <span class="value">{{ settings.businessEmail }}</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">الموقع:</span>
+        <span class="value">{{ settings.businessLocation }}</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">ساعات العمل:</span>
+        <span class="value">{{ settings.businessHours }}</span>
+      </div>
+    </div>
+
+    <div class="setting-card">
+      <h3>إعدادات الولاء</h3>
+      <div class="setting-item">
+        <span class="label">معدل النقاط:</span>
+        <span class="value">{{ settings.loyaltyPointsRate }} نقطة لكل ريال</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">الإشعارات:</span>
+        <span class="value">{{ settings.notificationsEnabled ? 'مفعلة' : 'معطلة' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="security-section">
+    <h3>الأمان</h3>
+    <button (click)="resetPassword()" class="reset-password-btn">تغيير كلمة المرور</button>
+  </div>
+</div>

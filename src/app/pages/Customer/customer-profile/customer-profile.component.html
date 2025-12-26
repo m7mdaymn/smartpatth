@@ -1,0 +1,96 @@
+<div class="profile-container" dir="rtl">
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="success-alert">{{ successMessage }}</div>
+
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="avatar-section">
+      <img [src]="profile.avatar" alt="avatar" class="profile-avatar">
+      <button (click)="changeAvatar()" class="change-avatar-btn" *ngIf="editMode">📷</button>
+    </div>
+    <div class="profile-name">
+      <h1>{{ profile.name }}</h1>
+      <p>{{ profile.email }}</p>
+    </div>
+    <button (click)="toggleEditMode()" [ngClass]="{'edit-mode': editMode}" class="edit-btn">
+      {{ editMode ? 'إلغاء' : 'تعديل' }}
+    </button>
+  </div>
+
+  <!-- Profile Form -->
+  <div class="profile-form" *ngIf="editMode">
+    <div class="form-group">
+      <label>الاسم الكامل</label>
+      <input type="text" [(ngModel)]="profile.name" placeholder="أدخل اسمك">
+    </div>
+
+    <div class="form-group">
+      <label>البريد الإلكتروني</label>
+      <input type="email" [(ngModel)]="profile.email" placeholder="أدخل بريدك الإلكتروني">
+    </div>
+
+    <div class="form-group">
+      <label>رقم الجوال</label>
+      <input type="tel" [(ngModel)]="profile.phone" placeholder="أدخل رقم جوالك">
+    </div>
+
+    <div class="form-group">
+      <label>المدينة</label>
+      <input type="text" [(ngModel)]="profile.city" placeholder="أدخل مدينتك">
+    </div>
+
+    <div class="form-group">
+      <label>موديل السيارة</label>
+      <input type="text" [(ngModel)]="profile.carModel" placeholder="مثال: تويوتا كامري">
+    </div>
+
+    <div class="form-group">
+      <label>لون السيارة</label>
+      <input type="text" [(ngModel)]="profile.carColor" placeholder="مثال: أسود">
+    </div>
+
+    <div class="form-group">
+      <label>لوحة الترخيص</label>
+      <input type="text" [(ngModel)]="profile.licensePlate" placeholder="مثال: ر ج ج 1234">
+    </div>
+
+    <button (click)="saveProfile()" class="save-btn" [disabled]="isLoading">
+      {{ isLoading ? 'جاري الحفظ...' : 'حفظ التغييرات' }}
+    </button>
+  </div>
+
+  <!-- Profile Display -->
+  <div class="profile-display" *ngIf="!editMode">
+    <div class="info-section">
+      <h3>معلومات الحساب</h3>
+      <div class="info-item">
+        <span class="label">البريد الإلكتروني:</span>
+        <span class="value">{{ profile.email }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">رقم الجوال:</span>
+        <span class="value">{{ profile.phone }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">المدينة:</span>
+        <span class="value">{{ profile.city }}</span>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>معلومات السيارة</h3>
+      <div class="info-item">
+        <span class="label">الموديل:</span>
+        <span class="value">{{ profile.carModel }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">اللون:</span>
+        <span class="value">{{ profile.carColor }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">لوحة الترخيص:</span>
+        <span class="value">{{ profile.licensePlate }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,91 @@
+<div class="merchant-dashboard" dir="rtl">
+  <div class="dashboard-header">
+    <h1>{{ merchantData.businessName }}</h1>
+    <button (click)="scanQR()" class="scan-btn">📱 ماسح QR</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <p>إجمالي العملاء</p>
+        <h3>{{ merchantData.totalCustomers }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card green">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <p>إجمالي الإيرادات</p>
+        <h3>{{ merchantData.totalRevenue | number }} ريال</h3>
+      </div>
+    </div>
+
+    <div class="stat-card orange">
+      <div class="stat-icon">🚗</div>
+      <div class="stat-content">
+        <p>الغسلات اليوم</p>
+        <h3>{{ merchantData.washesToday }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card purple">
+      <div class="stat-icon">🎫</div>
+      <div class="stat-content">
+        <p>بطاقات الولاء النشطة</p>
+        <h3>{{ merchantData.activeLoyaltyCards }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="quick-stats">
+      <h3>إحصائيات سريعة</h3>
+      <div class="stat-item">
+        <span>نمو هذا الشهر</span>
+        <span class="value green">{{ merchantData.quickStats.monthlyGrowth }}%</span>
+      </div>
+      <div class="stat-item">
+        <span>معدل الاحتفاظ</span>
+        <span class="value green">{{ merchantData.quickStats.customerRetention }}%</span>
+      </div>
+      <div class="stat-item">
+        <span>متوسط قيمة الغسلة</span>
+        <span class="value">{{ merchantData.quickStats.avgWashValue }} ريال</span>
+      </div>
+      <div class="stat-item">
+        <span>المكافآت المستبدلة</span>
+        <span class="value">{{ merchantData.quickStats.rewardsRedeemed }}</span>
+      </div>
+    </div>
+
+    <div class="recent-scans">
+      <h3>آخر المسحات</h3>
+      <div class="scan-item" *ngFor="let scan of merchantData.recentScans">
+        <div class="scan-info">
+          <h4>{{ scan.customer }}</h4>
+          <p>{{ scan.time }}</p>
+        </div>
+        <span class="scan-status success">✓ {{ scan.status }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <h3>القائمة السريعة</h3>
+    <div class="menu-grid">
+      <button (click)="navigateTo('customers')" class="menu-card">
+        <span class="menu-icon">👥</span>
+        <span class="menu-label">العملاء</span>
+      </button>
+      <button (click)="navigateTo('scan-qr')" class="menu-card">
+        <span class="menu-icon">📱</span>
+        <span class="menu-label">مسح QR</span>
+      </button>
+      <button (click)="navigateTo('settings')" class="menu-card">
+        <span class="menu-icon">⚙️</span>
+        <span class="menu-label">الإعدادات</span>
+      </button>
+    </div>
+  </div>
+</div>
