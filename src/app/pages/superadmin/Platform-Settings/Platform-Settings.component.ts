@@ -1,3 +1,15 @@
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-platform-settings',
+  standalone: true,
+  imports: [],
+  templateUrl: './platform-settings.component.html',
+  styleUrl: './platform-settings.component.css'
+})
+export class PlatformSettingsComponent {
+
+}
 // platform-settings.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
