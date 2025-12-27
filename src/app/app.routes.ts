@@ -103,10 +103,10 @@ export const routes: Routes = [
         path: 'revenue',
         loadComponent: () => import('./pages/superadmin/system-revenue/system-revenue.component').then(m => m.SystemRevenueComponent)
       }, 
-       {
-        path: 'platform-settings',
-        loadComponent: () => import('./pages/superadmin/platform-settings/platform-settings.component').then(m => m.PlatformSettingsComponent)
-      }
+      //  {
+      //   path: 'platform-settings',
+      //   loadComponent: () => import('./pages/superadmin/platform-settings/platform-settings.component').then(m => m.PlatformSettingsComponent)
+      // }
     ]
   },
   {

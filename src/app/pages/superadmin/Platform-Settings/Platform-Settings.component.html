@@ -1,1041 +1,0 @@
-<!-- platform-settings.component.html -->
-<div class="platform-settings" dir="rtl">
-  <!-- Header -->
-  <header class="settings-header">
-    <div class="header-content">
-      <div class="header-main">
-        <div class="logo-section">
-          <div class="settings-badge">
-            <span class="badge-icon">⚙️</span>
-            <span class="badge-text">إعدادات المنصة</span>
-          </div>
-          <div class="header-titles">
-            <h1 class="main-title">إعدادات النظام الأساسية</h1>
-            <p class="subtitle">تهيئة إعدادات منصة Digital Pass</p>
-          </div>
-        </div>
-        
-        <div class="header-actions">
-          <button class="save-btn" (click)="saveSettings()" [disabled]="isSaving">
-            <span *ngIf="!isSaving">💾 حفظ التغييرات</span>
-            <span *ngIf="isSaving" class="saving">
-              <span class="spinner"></span>
-              جاري الحفظ...
-            </span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Settings Tabs -->
-  <nav class="settings-tabs">
-    <div class="tabs-container">
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'general'"
-        (click)="setActiveTab('general')"
-      >
-        <span class="tab-icon">🏢</span>
-        <span class="tab-text">عام</span>
-      </button>
-      
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'subscriptions'"
-        (click)="setActiveTab('subscriptions')"
-      >
-        <span class="tab-icon">💰</span>
-        <span class="tab-text">الاشتراكات</span>
-      </button>
-      
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'notifications'"
-        (click)="setActiveTab('notifications')"
-      >
-        <span class="tab-icon">🔔</span>
-        <span class="tab-text">الإشعارات</span>
-      </button>
-      
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'payment'"
-        (click)="setActiveTab('payment')"
-      >
-        <span class="tab-icon">💳</span>
-        <span class="tab-text">الدفع</span>
-      </button>
-      
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'security'"
-        (click)="setActiveTab('security')"
-      >
-        <span class="tab-icon">🔒</span>
-        <span class="tab-text">الأمان</span>
-      </button>
-      
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'maintenance'"
-        (click)="setActiveTab('maintenance')"
-      >
-        <span class="tab-icon">🔧</span>
-        <span class="tab-text">الصيانة</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Settings Content -->
-  <main class="settings-content">
-    <!-- General Settings -->
-    <div *ngIf="activeTab === 'general'" class="tab-content">
-      <div class="settings-section">
-        <h2 class="section-title">الإعدادات العامة</h2>
-        
-        <div class="settings-grid">
-          <!-- Platform Name -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>اسم المنصة</h3>
-              <span class="setting-required">مطلوب</span>
-            </div>
-            <input 
-              type="text" 
-              [(ngModel)]="platformSettings.name"
-              class="setting-input"
-              placeholder="Digital Pass"
-            >
-            <span class="setting-hint">الاسم الذي يظهر للمستخدمين في جميع الصفحات</span>
-          </div>
-          
-          <!-- Platform Logo -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>شعار المنصة</h3>
-            </div>
-            <div class="logo-upload">
-              <div class="logo-preview">
-                <img *ngIf="platformSettings.logoUrl" [src]="platformSettings.logoUrl" alt="Logo">
-                <div *ngIf="!platformSettings.logoUrl" class="logo-placeholder">
-                  <span class="placeholder-icon">🏢</span>
-                  <span class="placeholder-text">اضغط لرفع الشعار</span>
-                </div>
-              </div>
-              <div class="upload-actions">
-                <button class="upload-btn" (click)="uploadLogo()">رفع صورة</button>
-                <button *ngIf="platformSettings.logoUrl" class="remove-btn" (click)="removeLogo()">إزالة</button>
-              </div>
-            </div>
-            <span class="setting-hint">الحجم الموصى به: 200×200 بكسل، الصيغ المسموحة: PNG, JPG</span>
-          </div>
-          
-          <!-- Support Email -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>بريد الدعم</h3>
-              <span class="setting-required">مطلوب</span>
-            </div>
-            <input 
-              type="email" 
-              [(ngModel)]="platformSettings.supportEmail"
-              class="setting-input"
-              placeholder="support@digitalpass.com"
-            >
-            <span class="setting-hint">البريد الإلكتروني الذي يتلقى استفسارات المستخدمين</span>
-          </div>
-          
-          <!-- Support Phone -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>هاتف الدعم</h3>
-            </div>
-            <input 
-              type="tel" 
-              [(ngModel)]="platformSettings.supportPhone"
-              class="setting-input"
-              placeholder="0548290509"
-            >
-            <span class="setting-hint">رقم الهاتف للدعم (سيظهر في صفحة الاتصال)</span>
-          </div>
-          
-          <!-- Default Language -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>اللغة الافتراضية</h3>
-            </div>
-            <select [(ngModel)]="platformSettings.defaultLanguage" class="setting-select">
-              <option value="ar">العربية</option>
-              <option value="en">English</option>
-            </select>
-            <span class="setting-hint">اللغة الافتراضية للمنصة</span>
-          </div>
-          
-          <!-- Timezone -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>المنطقة الزمنية</h3>
-            </div>
-            <select [(ngModel)]="platformSettings.timezone" class="setting-select">
-              <option value="Asia/Riyadh">(GMT+3) الرياض</option>
-              <option value="Asia/Dubai">(GMT+4) دبي</option>
-              <option value="UTC">(GMT+0) التوقيت العالمي</option>
-            </select>
-            <span class="setting-hint">المنطقة الزمنية المستخدمة في التقارير والتواريخ</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Subscription Settings -->
-    <div *ngIf="activeTab === 'subscriptions'" class="tab-content">
-      <div class="settings-section">
-        <h2 class="section-title">إعدادات الاشتراكات</h2>
-        
-        <div class="settings-grid">
-          <!-- Basic Plan -->
-          <div class="plan-settings-card basic-plan">
-            <div class="plan-header">
-              <h3>باقة Basic</h3>
-              <span class="plan-badge">المنتج الأساسي</span>
-            </div>
-            
-            <div class="plan-content">
-              <div class="price-setting">
-                <label class="price-label">
-                  السعر الشهري
-                  <span class="required">*</span>
-                </label>
-                <div class="price-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.basicPlanMonthlyPrice"
-                    class="setting-input"
-                    min="0"
-                    step="10"
-                  >
-                  <span class="currency">ريال</span>
-                </div>
-                <span class="setting-hint">السعر الشهري للباقة الأساسية</span>
-              </div>
-              
-              <div class="price-setting">
-                <label class="price-label">
-                  السعر السنوي
-                </label>
-                <div class="price-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.basicPlanYearlyPrice"
-                    class="setting-input"
-                    min="0"
-                    step="10"
-                  >
-                  <span class="currency">ريال</span>
-                </div>
-                <span class="setting-hint">السعر السنوي (سيتم حساب توفير 20%)</span>
-              </div>
-              
-              <div class="features-list">
-                <h4>المميزات المتضمنة:</h4>
-                <ul>
-                  <li>بطاقة ولاء رقمية</li>
-                  <li>QR Code واحد للمغسلة</li>
-                  <li>1 فرع - 2 مستخدمين</li>
-                  <li>نظام ولاء بزمن محدد</li>
-                  <li>لوحة تحكم بسيطة</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Pro Plan -->
-          <div class="plan-settings-card pro-plan">
-            <div class="plan-header">
-              <h3>باقة Pro</h3>
-              <span class="plan-badge pro">الأكثر طلباً</span>
-            </div>
-            
-            <div class="plan-content">
-              <div class="price-setting">
-                <label class="price-label">
-                  السعر الشهري
-                  <span class="required">*</span>
-                </label>
-                <div class="price-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.proPlanMonthlyPrice"
-                    class="setting-input"
-                    min="0"
-                    step="10"
-                  >
-                  <span class="currency">ريال</span>
-                </div>
-                <span class="setting-hint">السعر الشهري للباقة المتقدمة</span>
-              </div>
-              
-              <div class="price-setting">
-                <label class="price-label">
-                  السعر السنوي
-                </label>
-                <div class="price-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.proPlanYearlyPrice"
-                    class="setting-input"
-                    min="0"
-                    step="10"
-                  >
-                  <span class="currency">ريال</span>
-                </div>
-                <span class="setting-hint">السعر السنوي (سيتم حساب توفير 16%)</span>
-              </div>
-              
-              <div class="features-list">
-                <h4>المميزات المتضمنة:</h4>
-                <ul>
-                  <li>كل ما في Basic +</li>
-                  <li>ولاء بزمن مرن</li>
-                  <li>تصوير سيارة العميل</li>
-                  <li>إشعارات قرب العميل</li>
-                  <li>3 فروع - 10 مستخدمين</li>
-                  <li>تقارير متقدمة</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Trial Settings -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>فترة التجربة المجانية</h3>
-            </div>
-            <div class="trial-settings">
-              <div class="trial-toggle">
-                <span>تفعيل التجربة المجانية</span>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.enableFreeTrial"
-                    class="toggle-input"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div *ngIf="platformSettings.enableFreeTrial" class="trial-duration">
-                <label class="duration-label">مدة التجربة:</label>
-                <div class="duration-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.trialPeriodDays"
-                    class="setting-input"
-                    min="1"
-                    max="30"
-                  >
-                  <span class="duration-unit">يوم</span>
-                </div>
-                <span class="setting-hint">عدد أيام التجربة المجانية (1-30 يوم)</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Tax Settings -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>إعدادات الضريبة</h3>
-            </div>
-            <div class="tax-settings">
-              <div class="tax-toggle">
-                <span>تفعيل حساب الضريبة</span>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.enableTax"
-                    class="toggle-input"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div *ngIf="platformSettings.enableTax" class="tax-rate">
-                <label class="tax-label">نسبة الضريبة:</label>
-                <div class="tax-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.taxRate"
-                    class="setting-input"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                  >
-                  <span class="tax-unit">%</span>
-                </div>
-                <span class="setting-hint">نسبة الضريبة المضافة (مثال: 15%)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Notifications Settings -->
-    <div *ngIf="activeTab === 'notifications'" class="tab-content">
-      <div class="settings-section">
-        <h2 class="section-title">إعدادات الإشعارات</h2>
-        
-        <div class="notifications-list">
-          <!-- Email Notifications -->
-          <div class="notification-setting">
-            <div class="notification-info">
-              <div class="notification-icon">📧</div>
-              <div class="notification-content">
-                <h3>الإشعارات البريدية</h3>
-                <p>إرسال إشعارات عبر البريد الإلكتروني للمستخدمين والمشتركين</p>
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input 
-                type="checkbox" 
-                [(ngModel)]="platformSettings.emailNotifications"
-                class="toggle-input"
-              >
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <!-- SMS Notifications -->
-          <div class="notification-setting">
-            <div class="notification-info">
-              <div class="notification-icon">📱</div>
-              <div class="notification-content">
-                <h3>إشعارات SMS</h3>
-                <p>إرسال إشعارات عبر الرسائل النصية للعملاء</p>
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input 
-                type="checkbox" 
-                [(ngModel)]="platformSettings.smsNotifications"
-                class="toggle-input"
-              >
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <!-- Renewal Reminders -->
-          <div class="notification-setting">
-            <div class="notification-info">
-              <div class="notification-icon">⏰</div>
-              <div class="notification-content">
-                <h3>تذكير تجديد الاشتراك</h3>
-                <p>إرسال تذكير للمشتركين قبل انتهاء الاشتراك</p>
-              </div>
-            </div>
-            <div class="notification-settings">
-              <label class="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  [(ngModel)]="platformSettings.renewalReminders"
-                  class="toggle-input"
-                >
-                <span class="toggle-slider"></span>
-              </label>
-              <div *ngIf="platformSettings.renewalReminders" class="reminder-days">
-                <span>قبل:</span>
-                <select [(ngModel)]="platformSettings.renewalReminderDays" class="days-select">
-                  <option value="1">يوم واحد</option>
-                  <option value="3">3 أيام</option>
-                  <option value="7">أسبوع</option>
-                  <option value="15">15 يوم</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Welcome Email -->
-          <div class="notification-setting">
-            <div class="notification-info">
-              <div class="notification-icon">👋</div>
-              <div class="notification-content">
-                <h3>بريد الترحيب</h3>
-                <p>إرسال بريد ترحيب عند تسجيل مستخدم جديد</p>
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input 
-                type="checkbox" 
-                [(ngModel)]="platformSettings.welcomeEmail"
-                class="toggle-input"
-              >
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <!-- New Merchant Alert -->
-          <div class="notification-setting">
-            <div class="notification-info">
-              <div class="notification-icon">🏪</div>
-              <div class="notification-content">
-                <h3>تنبيه مشترك جديد</h3>
-                <p>إشعار عند تسجيل مشترك (مغسلة) جديد</p>
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input 
-                type="checkbox" 
-                [(ngModel)]="platformSettings.newMerchantAlert"
-                class="toggle-input"
-              >
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Payment Settings -->
-    <div *ngIf="activeTab === 'payment'" class="tab-content">
-      <div class="settings-section">
-        <h2 class="section-title">إعدادات الدفع</h2>
-        
-        <div class="settings-grid">
-          <!-- Payment Methods -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>طرق الدفع المتاحة</h3>
-            </div>
-            
-            <div class="payment-methods">
-              <div class="payment-method">
-                <div class="method-info">
-                  <div class="method-icon">💳</div>
-                  <div class="method-content">
-                    <h4>بطاقات الائتمان</h4>
-                    <p>Visa, MasterCard, Mada</p>
-                  </div>
-                </div>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.paymentMethods.creditCard"
-                    class="toggle-input"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div class="payment-method">
-                <div class="method-info">
-                  <div class="method-icon">🏦</div>
-                  <div class="method-content">
-                    <h4>التحويل البنكي</h4>
-                    <p>التحويل المباشر للبنك</p>
-                  </div>
-                </div>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.paymentMethods.bankTransfer"
-                    class="toggle-input"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div class="payment-method">
-                <div class="method-info">
-                  <div class="method-icon">🤝</div>
-                  <div class="method-content">
-                    <h4>الدفع عند التسليم</h4>
-                    <p>للمشتركين الجدد</p>
-                  </div>
-                </div>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.paymentMethods.cashOnDelivery"
-                    class="toggle-input"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Payment Gateway -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>بوابة الدفع الإلكتروني</h3>
-            </div>
-            
-            <select [(ngModel)]="platformSettings.paymentGateway" class="setting-select">
-              <option value="moyasar">Moyasar</option>
-              <option value="hyperpay">HyperPay</option>
-              <option value="tap">Tap</option>
-              <option value="paypal">PayPal</option>
-            </select>
-            
-            <div *ngIf="platformSettings.paymentGateway" class="gateway-credentials">
-              <div class="credential-input">
-                <label>API Key:</label>
-                <input 
-                  type="password" 
-                  [(ngModel)]="platformSettings.paymentApiKey"
-                  class="setting-input"
-                  placeholder="أدخل مفتاح API"
-                >
-              </div>
-              <div class="credential-input">
-                <label>Secret Key:</label>
-                <input 
-                  type="password" 
-                  [(ngModel)]="platformSettings.paymentSecretKey"
-                  class="setting-input"
-                  placeholder="أدخل المفتاح السري"
-                >
-              </div>
-            </div>
-            
-            <span class="setting-hint">اختر بوابة الدفع واملأ بيانات الاعتماد</span>
-          </div>
-          
-          <!-- Auto Renewal -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>التجديد التلقائي</h3>
-            </div>
-            
-            <div class="auto-renewal-settings">
-              <div class="renewal-toggle">
-                <span>تفعيل التجديد التلقائي</span>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.autoRenewal"
-                    class="toggle-input"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div *ngIf="platformSettings.autoRenewal" class="renewal-options">
-                <div class="option">
-                  <label>
-                    <input 
-                      type="radio" 
-                      name="renewalType" 
-                      [(ngModel)]="platformSettings.renewalType"
-                      value="same_price"
-                    >
-                    التجديد بنفس السعر
-                  </label>
-                </div>
-                <div class="option">
-                  <label>
-                    <input 
-                      type="radio" 
-                      name="renewalType" 
-                      [(ngModel)]="platformSettings.renewalType"
-                      value="current_price"
-                    >
-                    التجديد بالسعر الحالي
-                  </label>
-                </div>
-              </div>
-            </div>
-            
-            <span class="setting-hint">تفعيل التجديد التلقائي للاشتراكات</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Security Settings -->
-    <div *ngIf="activeTab === 'security'" class="tab-content">
-      <div class="settings-section">
-        <h2 class="section-title">إعدادات الأمان</h2>
-        
-        <div class="settings-grid">
-          <!-- Password Policy -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>سياسة كلمة المرور</h3>
-            </div>
-            
-            <div class="password-policy">
-              <div class="policy-option">
-                <label class="checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.passwordPolicy.requireUppercase"
-                    class="checkbox-input"
-                  >
-                  <span class="checkbox-custom"></span>
-                  <span>حرف كبير على الأقل</span>
-                </label>
-              </div>
-              
-              <div class="policy-option">
-                <label class="checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.passwordPolicy.requireLowercase"
-                    class="checkbox-input"
-                  >
-                  <span class="checkbox-custom"></span>
-                  <span>حرف صغير على الأقل</span>
-                </label>
-              </div>
-              
-              <div class="policy-option">
-                <label class="checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.passwordPolicy.requireNumbers"
-                    class="checkbox-input"
-                  >
-                  <span class="checkbox-custom"></span>
-                  <span>رقم على الأقل</span>
-                </label>
-              </div>
-              
-              <div class="policy-option">
-                <label class="checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.passwordPolicy.requireSpecialChars"
-                    class="checkbox-input"
-                  >
-                  <span class="checkbox-custom"></span>
-                  <span>رمز خاص على الأقل</span>
-                </label>
-              </div>
-              
-              <div class="min-length">
-                <label>الحد الأدنى للأحرف:</label>
-                <div class="length-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.passwordPolicy.minLength"
-                    class="setting-input"
-                    min="6"
-                    max="32"
-                  >
-                  <span>حرف</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Session Management -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>إدارة الجلسات</h3>
-            </div>
-            
-            <div class="session-settings">
-              <div class="session-option">
-                <label>مدة الجلسة:</label>
-                <div class="session-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.sessionTimeout"
-                    class="setting-input"
-                    min="15"
-                    max="1440"
-                  >
-                  <span>دقيقة</span>
-                </div>
-                <span class="setting-hint">زمن انتهاء الجلسة بعد عدم النشاط</span>
-              </div>
-              
-              <div class="session-option">
-                <label>الحد الأقصى للمحاولات:</label>
-                <div class="session-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.maxLoginAttempts"
-                    class="setting-input"
-                    min="3"
-                    max="10"
-                  >
-                  <span>محاولة</span>
-                </div>
-                <span class="setting-hint">عدد محاولات تسجيل الدخول قبل الإقفال</span>
-              </div>
-              
-              <div class="session-option">
-                <label class="checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.allowMultipleSessions"
-                    class="checkbox-input"
-                  >
-                  <span class="checkbox-custom"></span>
-                  <span>السماح بجلسات متعددة</span>
-                </label>
-                <span class="setting-hint">السماح للمستخدم بتسجيل الدخول من أجهزة متعددة</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Two-Factor Authentication -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>المصادقة الثنائية</h3>
-            </div>
-            
-            <div class="two-factor-settings">
-              <div class="two-factor-toggle">
-                <span>تفعيل المصادقة الثنائية</span>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.twoFactorAuth"
-                    class="toggle-input"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div *ngIf="platformSettings.twoFactorAuth" class="two-factor-methods">
-                <div class="method-option">
-                  <label class="checkbox-label">
-                    <input 
-                      type="checkbox" 
-                      [(ngModel)]="platformSettings.twoFactorMethods.sms"
-                      class="checkbox-input"
-                    >
-                    <span class="checkbox-custom"></span>
-                    <span>عبر SMS</span>
-                  </label>
-                </div>
-                
-                <div class="method-option">
-                  <label class="checkbox-label">
-                    <input 
-                      type="checkbox" 
-                      [(ngModel)]="platformSettings.twoFactorMethods.email"
-                      class="checkbox-input"
-                    >
-                    <span class="checkbox-custom"></span>
-                    <span>عبر البريد الإلكتروني</span>
-                  </label>
-                </div>
-                
-                <div class="method-option">
-                  <label class="checkbox-label">
-                    <input 
-                      type="checkbox" 
-                      [(ngModel)]="platformSettings.twoFactorMethods.authenticator"
-                      class="checkbox-input"
-                    >
-                    <span class="checkbox-custom"></span>
-                    <span>تطبيق المصادقة (Google Authenticator)</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Maintenance Settings -->
-    <div *ngIf="activeTab === 'maintenance'" class="tab-content">
-      <div class="settings-section">
-        <h2 class="section-title">إعدادات الصيانة</h2>
-        
-        <div class="settings-grid">
-          <!-- Maintenance Mode -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>وضع الصيانة</h3>
-            </div>
-            
-            <div class="maintenance-settings">
-              <div class="maintenance-toggle">
-                <span>تفعيل وضع الصيانة</span>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.maintenanceMode"
-                    class="toggle-input"
-                    (change)="onMaintenanceToggle()"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div *ngIf="platformSettings.maintenanceMode" class="maintenance-options">
-                <div class="maintenance-message">
-                  <label>رسالة الصيانة:</label>
-                  <textarea 
-                    [(ngModel)]="platformSettings.maintenanceMessage"
-                    class="setting-textarea"
-                    placeholder="نظام الصيانة قيد التطوير حالياً، سوف نعود قريباً."
-                    rows="3"
-                  ></textarea>
-                </div>
-                
-                <div class="maintenance-schedule">
-                  <label>جدول الصيانة:</label>
-                  <div class="schedule-inputs">
-                    <div class="schedule-input">
-                      <label>من:</label>
-                      <input 
-                        type="datetime-local" 
-                        [(ngModel)]="platformSettings.maintenanceStart"
-                        class="setting-input"
-                      >
-                    </div>
-                    <div class="schedule-input">
-                      <label>إلى:</label>
-                      <input 
-                        type="datetime-local" 
-                        [(ngModel)]="platformSettings.maintenanceEnd"
-                        class="setting-input"
-                      >
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="access-control">
-                  <label>الوصول أثناء الصيانة:</label>
-                  <div class="access-options">
-                    <label class="checkbox-label">
-                      <input 
-                        type="checkbox" 
-                        [(ngModel)]="platformSettings.maintenanceAccess.admins"
-                        class="checkbox-input"
-                      >
-                      <span class="checkbox-custom"></span>
-                      <span>المشرفون</span>
-                    </label>
-                    
-                    <label class="checkbox-label">
-                      <input 
-                        type="checkbox" 
-                        [(ngModel)]="platformSettings.maintenanceAccess.merchants"
-                        class="checkbox-input"
-                      >
-                      <span class="checkbox-custom"></span>
-                      <span>المشتركون</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Backup Settings -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>النسخ الاحتياطي</h3>
-            </div>
-            
-            <div class="backup-settings">
-              <div class="backup-toggle">
-                <span>تفعيل النسخ الاحتياطي التلقائي</span>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="platformSettings.autoBackup"
-                    class="toggle-input"
-                  >
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div *ngIf="platformSettings.autoBackup" class="backup-options">
-                <div class="backup-frequency">
-                  <label>التكرار:</label>
-                  <select [(ngModel)]="platformSettings.backupFrequency" class="setting-select">
-                    <option value="daily">يومياً</option>
-                    <option value="weekly">أسبوعياً</option>
-                    <option value="monthly">شهرياً</option>
-                  </select>
-                </div>
-                
-                <div class="backup-retention">
-                  <label>فترة الاحتفاظ:</label>
-                  <div class="retention-input">
-                    <input 
-                      type="number" 
-                      [(ngModel)]="platformSettings.backupRetentionDays"
-                      class="setting-input"
-                      min="7"
-                      max="365"
-                    >
-                    <span>يوم</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="backup-actions">
-                <button class="backup-btn" (click)="createBackup()">
-                  <span class="backup-icon">💾</span>
-                  إنشاء نسخة احتياطية الآن
-                </button>
-                
-                <button class="restore-btn" (click)="restoreBackup()">
-                  <span class="restore-icon">🔄</span>
-                  استعادة نسخة
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- System Logs -->
-          <div class="setting-card">
-            <div class="setting-header">
-              <h3>سجلات النظام</h3>
-            </div>
-            
-            <div class="logs-settings">
-              <div class="logs-retention">
-                <label>فترة احتفاظ السجلات:</label>
-                <div class="retention-input">
-                  <input 
-                    type="number" 
-                    [(ngModel)]="platformSettings.logsRetentionDays"
-                    class="setting-input"
-                    min="30"
-                    max="365"
-                  >
-                  <span>يوم</span>
-                </div>
-                <span class="setting-hint">عدد الأيام التي تحتفظ فيها السجلات قبل الحذف</span>
-              </div>
-              
-              <div class="logs-level">
-                <label>مستوى السجلات:</label>
-                <select [(ngModel)]="platformSettings.logsLevel" class="setting-select">
-                  <option value="error">الأخطاء فقط</option>
-                  <option value="warning">التحذيرات والأخطاء</option>
-                  <option value="info">جميع السجلات</option>
-                  <option value="debug">التفاصيل الكاملة</option>
-                </select>
-              </div>
-              
-              <div class="logs-actions">
-                <button class="download-logs-btn" (click)="downloadLogs()">
-                  <span class="download-icon">📥</span>
-                  تحميل السجلات
-                </button>
-                
-                <button class="clear-logs-btn" (click)="clearLogs()">
-                  <span class="clear-icon">🗑️</span>
-                  مسح السجلات القديمة
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
