@@ -1,9 +1,11 @@
-// super-admin-dashboard.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { interval, Subscription } from 'rxjs';
+import { SuperAdminService } from '../../../core/services/super-admin.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-super-admin-dashboard',
@@ -24,65 +26,72 @@ import { interval, Subscription } from 'rxjs';
 export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   currentTime = '';
   private timeSubscription!: Subscription;
+  isLoading = true;
   
   systemData = {
-    totalCustomers: 1245,
-    totalMerchants: 68,
-    totalRevenue: 245800,
-    activeWashes: 42,
+    totalCustomers: 0,
+    totalMerchants: 0,
+    totalRevenue: 0,
+    activeWashes: 0,
     stats: {
-      monthlyGrowth: 23.5,
-      systemUptime: 99.8,
-      avgTransactionValue: 47.50,
-      totalTransactions: 5234
-    }
+      monthlyGrowth: 0,
+      systemUptime: 0,
+      avgTransactionValue: 0,
+      totalTransactions: 0
+    } as any
   };
   
-  recentActivity = [
-    {
-      icon: '👥',
-      type: 'success',
-      title: 'مستخدم جديد مسجل',
-      description: 'محمد أحمد سجل كمغسلة سيارات',
-      time: 'منذ 5 دقائق',
-      status: 'success',
-      statusText: 'مكتمل'
-    },
-    {
-      icon: '💰',
-      type: 'info',
-      title: 'تجديد اشتراك',
-      description: 'مغسلة النور جددت اشتراك Pro',
-      time: 'منذ 15 دقيقة',
-      status: 'success',
-      statusText: 'مكتمل'
-    },
-    {
-      icon: '🚗',
-      type: 'warning',
-      title: 'بطاقة جديدة',
-      description: 'تم إنشاء بطاقة ولاء جديدة',
-      time: 'منذ 30 دقيقة',
-      status: 'pending',
-      statusText: 'قيد المعالجة'
-    },
-    {
-      icon: '📊',
-      type: 'info',
-      title: 'تقرير شهري',
-      description: 'تم إنشاء تقرير الإيرادات لشهر ديسمبر',
-      time: 'منذ ساعة',
-      status: 'success',
-      statusText: 'مكتمل'
-    }
-  ];
+  recentActivity: any[] = [];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private superAdminService: SuperAdminService,
+    private authService: AuthService,
+    private toast: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.updateTime();
     this.timeSubscription = interval(60000).subscribe(() => {
       this.updateTime();
+    });
+    this.loadDashboardData();
+  }
+
+  loadDashboardData(): void {
+    this.isLoading = true;
+    this.superAdminService.getDashboard().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const dashboard = response.data;
+          this.systemData = {
+            totalCustomers: dashboard.totalCustomers || 0,
+            totalMerchants: dashboard.totalMerchants || 0,
+            totalRevenue: dashboard.totalRevenue || 0,
+            activeWashes: dashboard.activeWashes || 0,
+            stats: dashboard.stats || {
+              monthlyGrowth: 0,
+              systemUptime: 0,
+              avgTransactionValue: 0,
+              totalTransactions: 0
+            }
+          };
+          this.recentActivity = (dashboard.recentActivity || []).map((a: any) => ({
+            icon: a.icon || '📊',
+            type: a.type || 'info',
+            title: a.title,
+            description: a.description,
+            time: a.time,
+            status: a.status || 'success',
+            statusText: a.statusText || 'مكتمل'
+          }));
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.toast.showError('فشل في تحميل بيانات لوحة التحكم');
+        this.isLoading = false;
+      }
     });
   }
 
@@ -105,6 +114,16 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
   viewAllActivity(): void {
     this.router.navigate(['/superadmin/activity-logs']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.toast.showSuccess('تم تسجيل الخروج بنجاح');
+    this.router.navigate(['/auth/signin']);
+  }
+
+  goBack(): void {
+    window.history.back();
   }
 
   ngOnDestroy(): void {

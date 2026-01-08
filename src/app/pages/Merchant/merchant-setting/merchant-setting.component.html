@@ -4,6 +4,7 @@
   <div class="settings-header">
     <div class="header-content">
       <div class="header-main">
+        <button class="back-btn" (click)="goBack()">← العودة</button>
         <div class="logo-section">
           <div class="merchant-badge">
             <span class="badge-icon">🏪</span>
@@ -26,12 +27,6 @@
 
   <!-- Tabs Navigation -->
   <nav class="settings-tabs">
-    <button class="tab-btn" 
-            [class.active]="activeTab === 'business'"
-            (click)="activeTab = 'business'">
-      <span class="tab-icon">🏢</span>
-      معلومات المغسلة
-    </button>
     <button class="tab-btn"
             [class.active]="activeTab === 'loyalty'"
             (click)="activeTab = 'loyalty'">
@@ -57,94 +52,6 @@
       الأمان
     </button>
   </nav>
-
-  <!-- Business Info Tab -->
-  <div class="tab-content" *ngIf="activeTab === 'business'">
-    <div class="tab-header">
-      <h2>معلومات المغسلة</h2>
-      <p>إدارة بيانات المغسلة الأساسية</p>
-    </div>
-    
-    <div class="form-section">
-      <div class="form-card">
-        <div class="form-header">
-          <h3>البيانات الأساسية</h3>
-          <span class="form-badge">مطلوب</span>
-        </div>
-        
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">
-              <span class="label-text">اسم المغسلة</span>
-              <span class="required">*</span>
-            </label>
-            <div class="input-with-icon">
-              <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M3 4C3 2.89543 3.89543 2 5 2H15C16.1046 2 17 2.89543 17 4V16C17 17.1046 16.1046 18 15 18H5C3.89543 18 3 17.1046 3 16V4Z" stroke="#9CA3AF" stroke-width="1.5"/>
-                <path d="M3 8H17" stroke="#9CA3AF" stroke-width="1.5"/>
-                <path d="M7 13H13" stroke="#9CA3AF" stroke-width="1.5"/>
-                <path d="M7 5H13" stroke="#9CA3AF" stroke-width="1.5"/>
-              </svg>
-              <input type="text" 
-                     [(ngModel)]="profileData.business_name"
-                     class="form-input"
-                     placeholder="مغسلة النور للسيارات">
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">
-              <span class="label-text">المدينة</span>
-              <span class="required">*</span>
-            </label>
-            <div class="input-with-icon">
-              <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 11.6667C11.3807 11.6667 12.5 10.5474 12.5 9.16667C12.5 7.78596 11.3807 6.66667 10 6.66667C8.61929 6.66667 7.5 7.78596 7.5 9.16667C7.5 10.5474 8.61929 11.6667 10 11.6667Z" stroke="#9CA3AF" stroke-width="1.5"/>
-                <path d="M16.6667 9.16667C16.6667 14.5333 10 19.1667 10 19.1667C10 19.1667 3.33333 14.5333 3.33333 9.16667C3.33333 5.48475 6.48528 2.5 10 2.5C13.5147 2.5 16.6667 5.48475 16.6667 9.16667Z" stroke="#9CA3AF" stroke-width="1.5"/>
-              </svg>
-              <select [(ngModel)]="profileData.city" class="form-select">
-                <option value="" disabled selected>اختر المدينة</option>
-                <option value="الرياض">الرياض</option>
-                <option value="جدة">جدة</option>
-                <option value="الدمام">الدمام</option>
-                <option value="مكة">مكة</option>
-                <option value="المدينة">المدينة</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">
-              <span class="label-text">رقم الجوال</span>
-              <span class="required">*</span>
-            </label>
-            <div class="input-with-icon">
-              <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M6.66667 3.33333L7.91667 2.08333C8.41667 1.58333 9.25 1.58333 9.75 2.08333L11.4167 3.75C11.75 4.08333 11.8333 4.58333 11.6667 5L10.8333 6.91667C10.6667 7.33333 10.6667 7.83333 10.8333 8.25L12.4167 11.9167C12.9167 13.0833 11.9167 14.4167 10.5833 14.25C7.5 13.9167 4.08333 10.5 3.75 7.41667C3.58333 6.08333 4.91667 5.08333 6.08333 5.58333L9.75 7.16667C10.1667 7.33333 10.6667 7.33333 11.0833 7.16667L13 6.33333C13.4167 6.16667 13.9167 6.25 14.25 6.58333L15.9167 8.25C16.4167 8.75 16.4167 9.58333 15.9167 10.0833L14.6667 11.3333C13.6667 12.3333 12.0833 12.6667 10.6667 12.4167C7.58333 11.8333 4.16667 8.41667 3.58333 5.33333C3.33333 3.91667 3.66667 2.33333 4.66667 1.33333L6.66667 3.33333Z" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <input type="tel" 
-                     [(ngModel)]="profileData.phone"
-                     class="form-input"
-                     placeholder="05XXXXXXXX">
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">البريد الإلكتروني</label>
-            <div class="input-with-icon">
-              <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M2.5 6.66667L8.08552 10.4486C8.91343 11.0155 9.32739 11.2989 9.77447 11.4088C10.1639 11.5051 10.5694 11.5051 10.9589 11.4088C11.4059 11.2989 11.8199 11.0155 12.6478 10.4486L18.2333 6.66667M5.33333 16.6667H14.6667C16.5076 16.6667 17.4281 16.6667 18.0322 16.3215C18.5627 16.0172 18.9845 15.5954 19.2888 15.0649C19.6333 14.4608 19.6333 13.5404 19.6333 11.6994V8.96667C19.6333 7.12572 19.6333 6.20525 19.2888 5.60117C18.9845 5.07065 18.5627 4.64882 18.0322 4.34455C17.4281 4 16.5076 4 14.6667 4H5.33333C3.49238 4 2.5719 4 1.96782 4.34455C1.4373 4.64882 1.01547 5.07065 0.711202 5.60117C0.366667 6.20525 0.366667 7.12572 0.366667 8.96667V11.6994C0.366667 13.5404 0.366667 14.4608 0.711202 15.0649C1.01547 15.5954 1.4373 16.0172 1.96782 16.3215C2.5719 16.6667 3.49238 16.6667 5.33333 16.6667Z" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <input type="email" 
-                     [(ngModel)]="profileData.email"
-                     class="form-input"
-                     placeholder="info@example.com">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Loyalty Settings Tab -->
   <div class="tab-content" *ngIf="activeTab === 'loyalty'">
@@ -234,6 +141,109 @@
           </div>
         </div>
       </div>
+
+      <!-- Loyalty Program Pause Feature -->
+      <div class="form-card">
+        <div class="form-header">
+          <h3>توقف برنامج الولاء</h3>
+          <span class="form-badge">جديد 🆕</span>
+        </div>
+        
+        <div class="pause-section">
+          <div class="pause-control">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px;">
+              <div>
+                <h4 style="margin: 0 0 5px 0;">{{ isLoyaltyPaused ? '⏸️ برنامج موقوف' : '▶️ برنامج نشط' }}</h4>
+                <p style="margin: 0; color: #666; font-size: 14px;">
+                  {{ isLoyaltyPaused ? 'العملاء لا يمكنهم كسب النقاط حالياً' : 'العملاء يمكنهم كسب النقاط' }}
+                </p>
+              </div>
+              <button class="toggle-pause-btn" 
+                      [class.paused]="isLoyaltyPaused"
+                      (click)="toggleLoyaltyPause()" 
+                      [disabled]="saving"
+                      style="padding: 12px 30px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: all 0.3s;">
+                {{ saving ? 'جاري...' : (isLoyaltyPaused ? '▶️ استئناف' : '⏸️ إيقاف') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'features'">
+    <div class="tab-header">
+      <h2>الميزات المتقدمة</h2>
+      <p>تفعيل/تعطيل الميزات الخاصة والإشعارات</p>
+    </div>
+    
+    <div class="form-section">
+      <!-- Car Photo Feature -->
+      <div class="form-card feature-card" [class.disabled-card]="merchantPlan === 'basic'">
+        <div class="feature-header">
+          <div class="feature-icon">🚗</div>
+          <div class="feature-info">
+            <h3>صور السيارات</h3>
+            <p>اسمح للعملاء برفع صور سياراتهم في بطاقات الولاء</p>
+            <div *ngIf="merchantPlan === 'basic'" class="plan-badge basic">
+              متاح في باقة Pro فقط
+            </div>
+          </div>
+          <div class="feature-toggle">
+            <label class="toggle-switch large" [class.disabled]="merchantPlan === 'basic'">
+              <input type="checkbox" 
+                     [(ngModel)]="settings.enable_car_photo"
+                     [disabled]="merchantPlan === 'basic'">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        
+        <div *ngIf="merchantPlan === 'basic'" class="plan-restriction-message">
+          <div class="restriction-icon">🔒</div>
+          <div class="restriction-text">
+            <p class="restriction-title">هذه الميزة متاحة في باقة Pro فقط</p>
+            <p class="restriction-subtitle">دع عملاءك يضيفون صور سياراتهم لزيادة التفاعل مع برنامج الولاء</p>
+            <button class="upgrade-btn" (click)="contactSupportForUpgrade()">
+              تواصل معنا لترقية الباقة
+            </button>
+          </div>
+        </div>
+
+        <div class="feature-description" *ngIf="settings.enable_car_photo && merchantPlan === 'pro'">
+          <p class="info-section">
+            <strong>كيف تعمل هذه الميزة:</strong><br>
+            عملاؤك هم من يضيفون صور سياراتهم من خلال تطبيقهم. أنت فقط تتحكم في تفعيل أو تعطيل هذه الخاصية:
+          </p>
+          
+          <div class="feature-benefits">
+            <div class="benefit">
+              <span class="benefit-icon">👤</span>
+              <span><strong>العميل:</strong> يرفع صورة سيارته من تطبيقه</span>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">🎮</span>
+              <span><strong>أنت:</strong> تتحكم في تفعيل/تعطيل الميزة فقط</span>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">✨</span>
+              <span><strong>النتيجة:</strong> بطاقة ولاء شخصية وفريدة لكل عميل</span>
+            </div>
+          </div>
+          
+          <div class="upload-instructions">
+            <h4>ملاحظات مهمة:</h4>
+            <ul class="important-notes">
+              <li>العميل يختار الصورة التي يريد، وليس عليك أن تفعل شيء يدوي</li>
+              <li>الصورة تظهر كأيقونة صغيرة في بطاقة ولاء العميل</li>
+              <li>يمكن للعميل تغيير الصورة في أي وقت من تطبيقه</li>
+              <li>تفعيل هذا الخيار يزيد من تفاعل العملاء مع برنامج الولاء بنسبة تصل إلى 40%</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -245,159 +255,72 @@
     </div>
     
     <div class="form-section">
-      <!-- Car Photo Feature -->
-      <div class="form-card feature-card">
-        <div class="feature-header">
-          <div class="feature-icon">🚗</div>
-          <div class="feature-info">
-            <h3>إضافة صور السيارات</h3>
-            <p>أضف صور سيارات العملاء في بطاقات الولاء</p>
-          </div>
-          <div class="feature-toggle">
-            <label class="toggle-switch large">
-              <input type="checkbox" 
-                     [(ngModel)]="settings.enable_car_photo"
-                     [disabled]="user?.plan?.type !== 'pro'">
-              <span class="toggle-slider"></span>
-            </label>
-            <span class="plan-required" *ngIf="user?.plan?.type !== 'pro'">
-              Pro فقط
-            </span>
-          </div>
-        </div>
-        
-        <div class="feature-description">
-          <p>تمكين التاجر من رفع صورة سيارة العميل في بطاقة الولاء. الصورة تظهر كأيقونة في محفظة العميل.</p>
-          
-          <div class="feature-benefits">
-            <div class="benefit">
-              <span class="benefit-icon">✅</span>
-              <span>صورة السيارة كأيقونة في البطاقة</span>
-            </div>
-            <div class="benefit">
-              <span class="benefit-icon">✅</span>
-              <span>تميز بطاقة العميل بمظهر شخصي</span>
-            </div>
-            <div class="benefit">
-              <span class="benefit-icon">✅</span>
-              <span>زيادة التفاعل مع برنامج الولاء</span>
-            </div>
-          </div>
-          
-          <!-- Car Photo Upload Instructions -->
-          <div class="upload-instructions" *ngIf="settings.enable_car_photo">
-            <h4>كيفية إضافة صورة السيارة:</h4>
-            <ol>
-              <li>العميل يسجل في برنامج الولاء</li>
-              <li>تقوم أنت برفع صورة سيارة العميل من لوحة التحكم</li>
-              <li>تظهر الصورة تلقائياً في بطاقة العميل</li>
-            </ol>
-            
-            <!-- Upload Button for Demo -->
-            <div class="upload-demo">
-              <label class="upload-btn">
-                <input type="file" 
-                       accept="image/*"
-                       (change)="onCarPhotoUpload($event)"
-                       [disabled]="user?.plan?.type !== 'pro'">
-                <span>رفع صورة سيارة</span>
-              </label>
-              <span class="upload-hint">JPG, PNG, حتى 5MB</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
       <!-- Design Customization -->
-      <div class="form-card">
+      <div class="form-card coming-soon-card">
         <div class="form-header">
           <h3>تخصيص الألوان</h3>
-          <span class="form-badge">اختياري</span>
+          <span class="form-badge coming-soon-badge">قريباً ⭐</span>
         </div>
         
-        <div class="design-settings">
-          <!-- Primary Color -->
-          <div class="design-group">
-            <label class="design-label">
-              <span class="label-text">اللون الأساسي</span>
-              <span class="color-preview" [style.background]="settings.custom_primary_color"></span>
-            </label>
-            <div class="color-picker">
-              <input type="color" 
-                     [(ngModel)]="settings.custom_primary_color"
-                     class="color-input">
-              <input type="text" 
-                     [(ngModel)]="settings.custom_primary_color"
-                     class="color-value"
-                     placeholder="#3B82F6">
-            </div>
-          </div>
-          
-          <!-- Secondary Color -->
-          <div class="design-group">
-            <label class="design-label">
-              <span class="label-text">اللون الثانوي</span>
-              <span class="color-preview" [style.background]="settings.custom_secondary_color"></span>
-            </label>
-            <div class="color-picker">
-              <input type="color" 
-                     [(ngModel)]="settings.custom_secondary_color"
-                     class="color-input">
-              <input type="text" 
-                     [(ngModel)]="settings.custom_secondary_color"
-                     class="color-value"
-                     placeholder="#0F172A">
-            </div>
-          </div>
-          
-          <!-- Business Logo -->
-          <div class="design-group">
-            <label class="design-label">شعار المغسلة</label>
-            <div class="logo-upload">
-              <div class="logo-preview" *ngIf="user?.custom_logo_url">
-                <!-- <img [src]="user.custom_logo_url" alt="Logo" class="logo-image"> -->
-                <button class="remove-logo" (click)="removeLogo()">×</button>
-              </div>
-              <label class="upload-btn logo-btn">
-                <input type="file" 
-                       accept="image/*"
-                       (change)="onLogoUpload($event)">
-                <span>رفع شعار جديد</span>
-              </label>
-              <span class="upload-hint">PNG أو JPG، حتى 2MB</span>
-            </div>
+        <div class="coming-soon-section">
+          <div class="coming-soon-content">
+            <div class="coming-soon-icon">🎨</div>
+            <h4>هذه الميزة قيد الإعداد</h4>
+            <p>سنضيف قريباً إمكانية تخصيص الألوان والتصميم بالكامل لتطبيق عملائك. ستتمكن من:</p>
+            <ul class="coming-soon-features">
+              <li>✨ تخصيص الألوان الأساسية والثانوية</li>
+              <li>🎯 تخصيص شعار المغسلة</li>
+              <li>📝 تغيير الرسائل والعلامات الترويجية</li>
+              <li>🎭 اختيار الثيم المفضل لديك</li>
+            </ul>
+            <p class="coming-soon-message">سيتم إرسال إشعار لك عند توفر هذه الميزة</p>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Advanced Features Tab -->
+  <!-- Features Tab -->
   <div class="tab-content" *ngIf="activeTab === 'features'">
     <div class="tab-header">
       <h2>الميزات المتقدمة</h2>
-      <p>ميزات إضافية لتحسين تجربة العملاء</p>
+      <p>تفعيل/تعطيل الميزات الخاصة والإشعارات</p>
     </div>
     
     <div class="form-section">
       <!-- Notifications -->
-      <div class="form-card feature-card">
+      <div class="form-card feature-card" [class.disabled-card]="merchantPlan === 'basic'">
         <div class="feature-header">
           <div class="feature-icon">🔔</div>
           <div class="feature-info">
             <h3>الإشعارات الذكية</h3>
             <p>إشعارات تلقائية للعملاء</p>
+            <div *ngIf="merchantPlan === 'basic'" class="plan-badge basic">
+              متاح في باقة Pro فقط
+            </div>
           </div>
           <div class="feature-toggle">
-            <label class="toggle-switch large">
+            <label class="toggle-switch large" [class.disabled]="merchantPlan === 'basic'">
               <input type="checkbox" 
-                     [(ngModel)]="settings.notifications_enabled">
+                     [(ngModel)]="settings.notifications_enabled"
+                     [disabled]="merchantPlan === 'basic'">
               <span class="toggle-slider"></span>
             </label>
           </div>
         </div>
         
-        <div class="feature-description" *ngIf="settings.notifications_enabled">
+        <div *ngIf="merchantPlan === 'basic'" class="plan-restriction-message">
+          <div class="restriction-icon">🔒</div>
+          <div class="restriction-text">
+            <p class="restriction-title">هذه الميزة متاحة في باقة Pro فقط</p>
+            <p class="restriction-subtitle">لتفعيل الإشعارات الذكية والاستمتاع بميزات إضافية، يرجى ترقية باقتك</p>
+            <button class="upgrade-btn" (click)="contactSupportForUpgrade()">
+              تواصل معنا لترقية الباقة
+            </button>
+          </div>
+        </div>
+
+        <div class="feature-description" *ngIf="settings.notifications_enabled && merchantPlan === 'pro'">
           <div class="notification-templates">
             <div class="template-group">
               <label class="template-label">رسالة الترحيب</label>
@@ -426,37 +349,7 @@
         </div>
       </div>
       
-      <!-- QR Code Settings -->
-      <div class="form-card feature-card">
-        <div class="feature-header">
-          <div class="feature-icon">📱</div>
-          <div class="feature-info">
-            <h3>بطاقة QR Code</h3>
-            <p>بطاقة الماسح الضوئي للمغسلة</p>
-          </div>
-          <div class="feature-actions">
-            <button class="action-btn" (click)="downloadQR()">
-              <span class="action-icon">⬇️</span>
-              تحميل
-            </button>
-            <button class="action-btn secondary" (click)="copyLink()">
-              <span class="action-icon">📋</span>
-              نسخ الرابط
-            </button>
-          </div>
-        </div>
-        
-        <div class="qr-preview">
-          <div class="qr-code">
-            <!-- QR Code will be generated here -->
-            <div class="qr-placeholder">QR Code</div>
-          </div>
-          <div class="qr-info">
-            <p class="qr-link">https://digitalpass.com/merchant/{{user?.id}}</p>
-            <p class="qr-hint">مسح هذا الكود لتسجيل غسلة العميل</p>
-          </div>
-        </div>
-      </div>
+
     </div>
   </div>
 

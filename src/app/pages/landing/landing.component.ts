@@ -1,13 +1,14 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { trigger, transition, style, animate, stagger, query, keyframes } from '@angular/animations';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.css'],
   animations: [
@@ -73,11 +74,25 @@ import { trigger, transition, style, animate, stagger, query, keyframes } from '
     ])
   ]
 })
-export class LandingComponent {
+export class LandingComponent implements OnInit {
   isScrolled = false;
   hoverState: { [key: string]: boolean } = {};
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
+
+  ngOnInit(): void {
+    // إذا كان المستخدم مسجل دخول، أعده إلى الصفحة الرئيسية المناسبة
+    if (this.authService.isAuthenticated()) {
+      const userRole = this.authService.user()?.role || 'customer';
+      if (userRole === 'merchant') {
+        this.router.navigate(['/merchant/dashboard']);
+      } else if (userRole === 'superadmin') {
+        this.router.navigate(['/superadmin/dashboard']);
+      } else {
+        this.router.navigate(['/customer/dashboard']);
+      }
+    }
+  }
 
   @HostListener('window:scroll', [])
   onWindowScroll() {

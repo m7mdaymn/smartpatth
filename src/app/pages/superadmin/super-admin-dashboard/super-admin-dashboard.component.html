@@ -5,19 +5,20 @@
       <div class="header-main">
         <div class="logo-section">
           <div class="admin-badge">
-            <span class="badge-icon">👑</span>
-            <span class="badge-text">Super Admin</span>
+            <h1 class="badge-text">لوحة تحكم المنصة</h1>
           </div>
           <div class="header-titles">
-            <h1 class="main-title">لوحة تحكم المنصة</h1>
             <p class="subtitle">نظام إدارة مغاسل السيارات الذكي</p>
           </div>
         </div>
         <div class="header-stats">
+          <div class="action-buttons">
+            <!-- <button class="header-btn back-btn" (click)="goBack()">← العودة</button> -->
+            <button class="header-btn logout-btn" (click)="logout()">🚪 تسجيل الخروج</button>
+          </div>
           <div class="live-stats">
             <span class="live-dot"></span>
             <span class="live-text">نظام نشط</span>
-            <span class="uptime">(99.8% تشغيل)</span>
           </div>
           <div class="current-time">
             <span class="time-icon">🕒</span>
@@ -49,14 +50,8 @@
         <div class="card-content">
           <div class="card-header">
             <h3 class="card-title">إجمالي الإيرادات</h3>
-            <span class="card-trend positive">+12.5%</span>
           </div>
           <div class="card-value">{{ systemData.totalRevenue | number:'1.0-0' }} <span class="currency">ريال</span></div>
-          <div class="card-details">
-            <span class="detail-item">شهري: 45,800 ريال</span>
-            <span class="detail-separator">•</span>
-            <span class="detail-item">سنوي: 2.8M ريال</span>
-          </div>
         </div>
       </div>
 
@@ -72,14 +67,8 @@
         <div class="card-content">
           <div class="card-header">
             <h3 class="card-title">المتاجر النشطة</h3>
-            <span class="card-trend positive">+8.2%</span>
           </div>
           <div class="card-value">{{ systemData.totalMerchants }}</div>
-          <div class="card-details">
-            <span class="detail-item">Basic: 42 متجر</span>
-            <span class="detail-separator">•</span>
-            <span class="detail-item">Pro: 26 متجر</span>
-          </div>
         </div>
       </div>
 
@@ -95,106 +84,14 @@
         <div class="card-content">
           <div class="card-header">
             <h3 class="card-title">العملاء النشطين</h3>
-            <span class="card-trend positive">+15.3%</span>
           </div>
           <div class="card-value">{{ systemData.totalCustomers | number }}</div>
-          <div class="card-details">
-            <span class="detail-item">بطاقات فعالة: 1,120</span>
-          </div>
         </div>
       </div>
-
-      <!-- Active Washes Card -->
-      <div class="stat-card washes-card" @cardAnimation>
-        <div class="card-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="12" fill="currentColor" fill-opacity="0.1"/>
-            <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M17 16L12 21L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M8 12L16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="card-content">
-          <div class="card-header">
-            <h3 class="card-title">غسلات نشطة</h3>
-            <span class="card-trend negative">-3.2%</span>
-          </div>
-          <div class="card-value">{{ systemData.activeWashes }}</div>
-          <div class="card-details">
-            <span class="detail-item">اليوم: 128 غسلة</span>
-          </div>
-        </div>
-      </div>
+      
     </div>
   </section>
 
-  <!-- System Performance -->
-  <section class="performance-section">
-    <div class="section-header">
-      <h2 class="section-title">أداء النظام</h2>
-      <p class="section-subtitle">مؤشرات أداء المنصة</p>
-    </div>
-    
-    <div class="performance-grid">
-      <!-- Growth Rate -->
-      <div class="performance-card">
-        <div class="performance-header">
-          <div class="performance-icon">📈</div>
-          <div class="performance-titles">
-            <h3>معدل النمو</h3>
-            <p>زيادة هذا الشهر</p>
-          </div>
-        </div>
-        <div class="performance-value">
-          {{ systemData.stats.monthlyGrowth }}%
-        </div>
-        <div class="performance-progress">
-          <div class="progress-bar">
-            <div class="progress-fill" [style.width.%]="systemData.stats.monthlyGrowth"></div>
-          </div>
-          <span class="progress-label">مقارنة بالشهر الماضي</span>
-        </div>
-      </div>
-
-      <!-- System Uptime -->
-      <div class="performance-card">
-        <div class="performance-header">
-          <div class="performance-icon">⚡</div>
-          <div class="performance-titles">
-            <h3>توفر النظام</h3>
-            <p>نسبة التشغيل</p>
-          </div>
-        </div>
-        <div class="performance-value">
-          {{ systemData.stats.systemUptime }}%
-        </div>
-        <div class="performance-status">
-          <span class="status-badge active">نشط</span>
-          <span class="status-time">منذ 30 يوم</span>
-        </div>
-      </div>
-
-      <!-- Transactions -->
-      <div class="performance-card">
-        <div class="performance-header">
-          <div class="performance-icon">💳</div>
-          <div class="performance-titles">
-            <h3>المعاملات</h3>
-            <p>إجمالي المعاملات</p>
-          </div>
-        </div>
-        <div class="performance-value">
-          {{ systemData.stats.totalTransactions | number }}
-        </div>
-        <div class="performance-details">
-          <div class="detail">
-            <span class="detail-label">متوسط قيمة:</span>
-            <span class="detail-value">{{ systemData.stats.avgTransactionValue | number }} ريال</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- Quick Actions -->
   <section class="actions-section">
@@ -204,7 +101,7 @@
     </div>
     
     <div class="actions-grid">
-      <button class="action-card" (click)="navigateTo('customers')">
+      <!-- <button class="action-card" (click)="navigateTo('customers')">
         <div class="action-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
@@ -214,7 +111,7 @@
         <h3 class="action-title">العملاء</h3>
         <p class="action-desc">إدارة حسابات العملاء</p>
         <span class="action-badge">{{ systemData.totalCustomers | number }} عميل</span>
-      </button>
+      </button> -->
 
       <button class="action-card" (click)="navigateTo('merchant-details')">
         <div class="action-icon">
@@ -227,18 +124,6 @@
         <h3 class="action-title">المتاجر</h3>
         <p class="action-desc">إدارة مغاسل السيارات</p>
         <span class="action-badge">{{ systemData.totalMerchants }} متجر</span>
-      </button>
-
-      <button class="action-card" (click)="navigateTo('revenue')">
-        <div class="action-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 7V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <h3 class="action-title">الإيرادات</h3>
-        <p class="action-desc">تقارير وتحليلات مالية</p>
-        <span class="action-badge">{{ systemData.totalRevenue / 1000 | number:'1.1-1' }}K ريال</span>
       </button>
 
       <!-- <button class="action-card" (click)="navigateTo('platform-settings')">
@@ -256,25 +141,4 @@
     </div>
   </section>
 
-  <!-- Recent Activity -->
-  <section class="activity-section">
-    <div class="section-header">
-      <h2 class="section-title">النشاط الحديث</h2>
-      <button class="view-all-btn" (click)="viewAllActivity()">عرض الكل →</button>
-    </div>
-    
-    <div class="activity-list">
-      <div class="activity-item" *ngFor="let activity of recentActivity">
-        <div class="activity-icon" [ngClass]="activity.type">
-          <span>{{ activity.icon }}</span>
-        </div>
-        <div class="activity-content">
-          <h4 class="activity-title">{{ activity.title }}</h4>
-          <p class="activity-description">{{ activity.description }}</p>
-          <span class="activity-time">{{ activity.time }}</span>
-        </div>
-        <span class="activity-badge" [ngClass]="activity.status">{{ activity.statusText }}</span>
-      </div>
-    </div>
-  </section>
 </div>

@@ -1,0 +1,157 @@
+<div class="enter-code-page" dir="rtl">
+  <!-- Background Pattern -->
+  <div class="background-pattern"></div>
+  
+  <div class="container">
+    <div class="content-wrapper" @fadeIn>
+      <!-- Header -->
+      <div class="page-header">
+        <button [routerLink]="['/']" class="back-btn">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M13 4L7 10L13 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          العودة
+        </button>
+        
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="8" fill="#3B82F6"/>
+              <path d="M12 16L16 20L24 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="16" cy="16" r="6" stroke="white" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span class="logo-primary">Digital</span>
+            <span class="logo-secondary">Pass</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="main-card">
+        <!-- Step 1: Enter Code -->
+        <div *ngIf="!codeValidated" class="step-content">
+          <div class="card-header">
+            <div class="icon-container">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="#3B82F6" stroke-width="2"/>
+                <path d="M7 7h.01M7 12h.01M7 17h.01M12 7h.01M12 12h.01M12 17h.01M17 7h.01M17 12h.01M17 17h.01" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h1 class="card-title">أدخل كود التسجيل</h1>
+            <p class="card-subtitle">أدخل الكود المكون من 6 أحرف/أرقام الذي حصلت عليه من التاجر</p>
+          </div>
+
+          <form [formGroup]="codeForm" (ngSubmit)="onSubmit()" class="code-form">
+            <div class="form-group">
+              <div class="code-input-container">
+                <input
+                  type="text"
+                  formControlName="code"
+                  class="code-input"
+                  [class.error]="codeForm.get('code')?.invalid && codeForm.get('code')?.touched"
+                  placeholder="ABC123"
+                  maxlength="6"
+                  (input)="formatCodeInput($event)"
+                  autocomplete="off"
+                />
+              </div>
+              <div *ngIf="codeForm.get('code')?.invalid && codeForm.get('code')?.touched" class="error-message">
+                <span *ngIf="codeForm.get('code')?.errors?.['required']">الكود مطلوب</span>
+                <span *ngIf="codeForm.get('code')?.errors?.['minlength'] || codeForm.get('code')?.errors?.['maxlength']">الكود يجب أن يكون 6 أحرف/أرقام</span>
+                <span *ngIf="codeForm.get('code')?.errors?.['pattern']">الكود يحتوي على أحرف إنجليزية كبيرة وأرقام فقط</span>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn" [disabled]="isLoading || codeForm.invalid">
+              <span *ngIf="!isLoading">التحقق من الكود</span>
+              <span *ngIf="isLoading" class="loading">
+                <svg class="spinner-btn" width="20" height="20" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+                جاري التحقق...
+              </span>
+            </button>
+          </form>
+
+          <div class="info-section">
+            <div class="info-card">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="#3B82F6" stroke-width="2"/>
+                <path d="M12 16v-4M12 8h.01" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <div>
+                <h4>أين أجد الكود؟</h4>
+                <p>يمكنك الحصول على الكود من مغسلة السيارات المشتركة معنا، أو عبر مسح رمز QR الخاص بهم.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Confirm Merchant -->
+        <div *ngIf="codeValidated && merchantInfo" class="step-content">
+          <div class="card-header">
+            <div class="success-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="#10B981"/>
+                <path d="M8 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h1 class="card-title">تم التحقق من الكود</h1>
+            <p class="card-subtitle">تأكد من بيانات التاجر ثم أكمل التسجيل</p>
+          </div>
+
+          <div class="merchant-info-card">
+            <div class="merchant-logo" *ngIf="merchantInfo.logo">
+              <img [src]="merchantInfo.logo" [alt]="merchantInfo.businessName" />
+            </div>
+            <div class="merchant-logo placeholder" *ngIf="!merchantInfo.logo">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path d="M3 21H21M3 7V21M21 7V21M6 10H10M6 14H10M14 10H18M14 14H18M6 18H18M9 3L12 7L15 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="merchant-details">
+              <h3>{{ merchantInfo.businessName }}</h3>
+              <p class="location">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                {{ merchantInfo.city }}
+              </p>
+              <div class="plan-badge" [class.pro]="merchantInfo.plan === 'Pro'">
+                {{ merchantInfo.plan === 'Pro' ? 'باقة برو' : 'الباقة الأساسية' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button (click)="proceedToRegistration()" class="primary-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M8.5 11a4 4 0 100-8 4 4 0 000 8zM20 8v6M23 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              إنشاء حساب جديد
+            </button>
+            <button (click)="resetCode()" class="secondary-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              تغيير الكود
+            </button>
+          </div>
+
+          <div class="divider">
+            <span>أو</span>
+          </div>
+
+          <div class="signin-link">
+            لديك حساب بالفعل؟
+            <a [routerLink]="['/auth/signin']">سجل دخولك</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

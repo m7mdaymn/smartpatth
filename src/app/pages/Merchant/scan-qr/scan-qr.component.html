@@ -12,9 +12,6 @@
   <div class="scan-section">
     <div class="scan-area">
       <div class="scan-frame">
-        <div class="scan-overlay">
-          <div class="scan-lines"></div>
-        </div>
         <div class="scan-placeholder">
           📷
         </div>
@@ -83,32 +80,100 @@
         <div class="customer-details">
           <h3>{{ scanResult.customerName }}</h3>
           <p>{{ scanResult.customerPhone }}</p>
+          <p *ngIf="scanResult.carPlateNumber" class="car-plate">
+            رقم السيارة: {{ scanResult.carPlateNumber }}
+          </p>
         </div>
       </div>
       
       <div class="progress-info">
         <div class="progress-label">
           <span>التقدم</span>
-          <span>{{ scanResult.currentWashes }} / {{ scanResult.totalWashes }}</span>
+          <span>{{ scanResult.currentWashes }} / {{ scanResult.washesRequired }}</span>
         </div>
         <div class="progress-bar">
           <div class="progress-fill" [style.width.%]="scanResult.progress"></div>
         </div>
+        <div class="remaining-washes-info">
+          <span class="gift-icon">🎁</span>
+          <span>متبقي {{ scanResult.washesRequired - scanResult.currentWashes }} غسلات للهدية</span>
+        </div>
       </div>
       
-      <!-- <div class="time-info">
+      <div class="time-info" *ngIf="scanResult.daysLeft > 0">
         <span class="time-label">الوقت المتبقي:</span>
         <span class="time-value">{{ scanResult.daysLeft }} يوم</span>
-      </div> -->
+      </div>
       
       <div *ngIf="scanResult.rewardEarned" class="reward-alert">
         🎉 مبروك! العميل استحق المكافأة
       </div>
+      
+      <div *ngIf="!scanResult.canAddWash" class="warning-alert">
+        ⚠️ لا يمكن إضافة غسلة اليوم
+      </div>
     </div>
     
-    <!-- <div class="result-actions">
+    <!-- Wash Details Form -->
+    <div *ngIf="showWashForm && scanResult.status === 'success'" class="wash-form-section">
+      <h3>تفاصيل الغسلة</h3>
+      
+      <div class="form-group">
+        <label>اسم الخدمة / نوع الغسيل *</label>
+        <input type="text" 
+               [(ngModel)]="washDetails.serviceName" 
+               placeholder="مثال: غسيل عادي، تنظيف داخلي، تلميع..."
+               required>
+      </div>
+      
+      <div class="form-group">
+        <label>المبلغ (ريال) - اختياري</label>
+        <input type="number" 
+               [(ngModel)]="washDetails.amount" 
+               min="0" 
+               placeholder="0 للخدمات المجانية">
+      </div>
+      
+      <div class="form-group">
+        <label>رقم لوحة السيارة</label>
+        <input type="text" 
+               [(ngModel)]="washDetails.carPlateNumber" 
+               [value]="scanResult.carPlateNumber"
+               readonly
+               disabled
+               class="readonly-field"
+               [placeholder]="(scanResult && scanResult.carPlateNumber) ? scanResult.carPlateNumber : 'غير متوفر'">
+      </div>
+      
+      <div class="form-group">
+        <label>تفاصيل إضافية (اختياري)</label>
+        <textarea [(ngModel)]="washDetails.notes" 
+                  placeholder="أي تفاصيل أو ملاحظات إضافية..."
+                  rows="3"></textarea>
+      </div>
+      
+      <div class="form-actions">
+        <button class="submit-wash-btn" 
+                (click)="recordWash()" 
+                [disabled]="isSubmittingWash">
+          <span *ngIf="!isSubmittingWash">✓ تسجيل الغسلة</span>
+          <span *ngIf="isSubmittingWash">جاري التسجيل...</span>
+        </button>
+        <button class="cancel-btn" (click)="cancelWashForm()">
+          إلغاء
+        </button>
+      </div>
+    </div>
+    
+    <div class="result-actions">
       <button class="done-btn" (click)="resetScan()">تم</button>
       <button class="new-btn" (click)="scanAgain()">مسح آخر</button>
-    </div> -->
+    </div>
+  </div>
+  
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>جاري المعالجة...</p>
   </div>
 </div>

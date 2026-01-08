@@ -4,6 +4,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
+import { MerchantService, MerchantRegistrationQR } from '../../../core/services/merchant.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { ApiResponse } from '../../../core/services/api.service';
 
 interface DashboardStats {
   totalCustomers: number;
@@ -13,6 +19,19 @@ interface DashboardStats {
   todayRevenue: number;
   rewardsGiven: number;
   pendingRewards: number;
+  // Extended statistics
+  totalWashesAllTime: number;
+  totalRevenueAllTime: number;
+  weeklyRevenue: number;
+  monthlyRevenue: number;
+  washesThisWeek: number;
+  washesThisMonth: number;
+  activeLoyaltyCards: number;
+  expiredLoyaltyCards: number;
+  customersNearReward: number;
+  subscriptionExpiryDate: string | null;
+  plan: string;
+  subscriptionStatus: string;
 }
 
 interface Activity {
@@ -36,73 +55,239 @@ interface LoyaltySettings {
   styleUrls: ['./merchant-dashboard.component.css']
 })
 export class MerchantDashboardComponent implements OnInit, OnDestroy {
-  merchantData = {
-    businessName: 'مغسلة النور',
-    city: 'الرياض',
-    plan: 'pro' as 'basic' | 'pro'
-  };
+  merchantData: any = null;
+  isLoading = true;
 
   dashboardStats: DashboardStats = {
-    totalCustomers: 42,
-    newCustomersToday: 3,
-    washesToday: 18,
-    lastWashTime: '10:30 صباحاً',
-    todayRevenue: 540,
-    rewardsGiven: 5,
-    pendingRewards: 2
+    totalCustomers: 0,
+    newCustomersToday: 0,
+    washesToday: 0,
+    lastWashTime: '-',
+    todayRevenue: 0,
+    rewardsGiven: 0,
+    pendingRewards: 0,
+    // Extended statistics
+    totalWashesAllTime: 0,
+    totalRevenueAllTime: 0,
+    weeklyRevenue: 0,
+    monthlyRevenue: 0,
+    washesThisWeek: 0,
+    washesThisMonth: 0,
+    activeLoyaltyCards: 0,
+    expiredLoyaltyCards: 0,
+    customersNearReward: 0,
+    subscriptionExpiryDate: null,
+    plan: 'basic',
+    subscriptionStatus: 'inactive'
   };
 
-  recentActivity: Activity[] = [
-    {
-      type: 'wash',
-      title: 'غسلة جديدة',
-      description: 'أحمد محمد - غسلة كاملة',
-      time: 'منذ 5 دقائق'
-    },
-    {
-      type: 'customer',
-      title: 'عميل جديد',
-      description: 'محمود سالم سجل كمغسلة',
-      time: 'منذ 15 دقيقة'
-    },
-    {
-      type: 'reward',
-      title: 'مكافأة مستحقة',
-      description: 'سعيد خالد استحق غسلة مجانية',
-      time: 'منذ 30 دقيقة'
-    },
-    {
-      type: 'revenue',
-      title: 'دفعة جديدة',
-      description: 'تم تحصيل 150 ريال',
-      time: 'منذ ساعة'
-    }
-  ];
-
+  recentActivity: Activity[] = [];
   loyaltySettings: LoyaltySettings = {
     rewardName: 'غسلة مجانية',
-    washesRequired: 10,
+    washesRequired: 5,
     timePeriod: 30
   };
 
   private refreshSubscription!: Subscription;
+  merchantId: string | null = null;
+  
+  // QR Code Registration
+  registrationQR: MerchantRegistrationQR | null = null;
+  isLoadingQR = false;
+  showQRModal = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private merchantService: MerchantService,
+    private authService: AuthService,
+    private toast: ToastService,
+    private http: HttpClient
+  ) {}
 
   ngOnInit(): void {
+    // Get merchantId from current user
+    const user = this.authService.user();
+    if (user?.id) {
+      // Check if merchant account is active - check both subscription status and current status from backend
+      const subscriptionStatus = (user as any).subscriptionStatus;
+      if (subscriptionStatus && subscriptionStatus !== 'active') {
+        this.router.navigate(['/merchant/inactive']);
+        return;
+      }
+      this.loadMerchantIdAndDashboard(user.id);
+    } else {
+      this.isLoading = false;
+      this.toast.showError('يجب تسجيل الدخول أولاً');
+    }
+    
     // Refresh data every 30 seconds
     this.refreshSubscription = interval(30000).subscribe(() => {
-      this.refreshDashboardData();
+      if (this.merchantId) {
+        this.refreshDashboardData();
+      }
     });
   }
 
+  loadMerchantIdAndDashboard(userId: string): void {
+    // First get the merchantId by userId
+    this.http.get<ApiResponse<string>>(`${environment.apiUrl}/merchant/by-user/${userId}`).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.merchantId = response.data; // Backend returns string directly
+          this.loadDashboardData();
+        } else {
+          this.toast.showError('فشل في تحديد معرف المغسلة');
+          this.isLoading = false;
+        }
+      },
+      error: () => {
+        this.toast.showError('فشل في تحميل بيانات المغسلة');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadDashboardData(): void {
+    // Requires merchantId - should be set by loadMerchantIdAndDashboard
+    if (!this.merchantId) {
+      this.isLoading = false;
+      return;
+    }
+
+    this.isLoading = true;
+    this.merchantService.getDashboard(this.merchantId).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const dashboard = response.data;
+          this.dashboardStats = {
+            totalCustomers: dashboard.totalCustomers || 0,
+            newCustomersToday: dashboard.newCustomersToday || 0,
+            washesToday: dashboard.washesToday || 0,
+            lastWashTime: dashboard.lastWashTime || '-',
+            todayRevenue: dashboard.todayRevenue || 0,
+            rewardsGiven: dashboard.rewardsGiven || 0,
+            pendingRewards: dashboard.pendingRewards || 0,
+            // Extended statistics
+            totalWashesAllTime: dashboard.totalWashesAllTime || 0,
+            totalRevenueAllTime: dashboard.totalRevenueAllTime || 0,
+            weeklyRevenue: dashboard.weeklyRevenue || 0,
+            monthlyRevenue: dashboard.monthlyRevenue || 0,
+            washesThisWeek: dashboard.washesThisWeek || 0,
+            washesThisMonth: dashboard.washesThisMonth || 0,
+            activeLoyaltyCards: dashboard.activeLoyaltyCards || 0,
+            expiredLoyaltyCards: dashboard.expiredLoyaltyCards || 0,
+            customersNearReward: dashboard.customersNearReward || 0,
+            subscriptionExpiryDate: dashboard.subscriptionExpiryDate || null,
+            plan: dashboard.plan || 'basic',
+            subscriptionStatus: dashboard.subscriptionStatus || 'inactive'
+          };
+          this.recentActivity = (dashboard.recentActivity || []).map((a: any) => ({
+            type: a.type,
+            title: a.title,
+            description: a.description,
+            time: a.time
+          }));
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.toast.showError('فشل في تحميل بيانات لوحة التحكم');
+        this.isLoading = false;
+      }
+    });
+
+    // Load merchant profile
+    if (this.merchantId) {
+      this.merchantService.getProfile(this.merchantId).subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.merchantData = {
+              businessName: response.data.businessName,
+              city: response.data.city,
+              plan: response.data.plan?.toLowerCase() || 'basic'
+            };
+          }
+        }
+      });
+
+      // Load settings
+      this.merchantService.getSettings(this.merchantId).subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.loyaltySettings = {
+              rewardName: response.data.rewardDescription || 'غسلة مجانية',
+              washesRequired: response.data.rewardWashesRequired || 5,
+              timePeriod: response.data.rewardTimeLimitDays || 30
+            };
+          }
+        }
+      });
+
+      // Load registration QR code
+      this.loadRegistrationQR();
+    }
+  }
+
+  loadRegistrationQR(): void {
+    this.isLoadingQR = true;
+    this.merchantService.getRegistrationQRCode(this.merchantId!).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.registrationQR = response.data;
+        }
+        this.isLoadingQR = false;
+      },
+      error: () => {
+        this.isLoadingQR = false;
+      }
+    });
+  }
+
+  generateNewQRCode(): void {
+    this.isLoadingQR = true;
+    this.merchantService.generateRegistrationQRCode().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.registrationQR = response.data;
+          this.toast.showSuccess('تم إنشاء رمز QR جديد بنجاح');
+        }
+        this.isLoadingQR = false;
+      },
+      error: () => {
+        this.toast.showError('فشل في إنشاء رمز QR');
+        this.isLoadingQR = false;
+      }
+    });
+  }
+
+  copyRegistrationCode(): void {
+    if (this.registrationQR?.registrationCode) {
+      navigator.clipboard.writeText(this.registrationQR.registrationCode).then(() => {
+        this.toast.showSuccess('تم نسخ الكود بنجاح');
+      });
+    }
+  }
+
+  copyRegistrationUrl(): void {
+    if (this.registrationQR?.registrationUrl) {
+      navigator.clipboard.writeText(this.registrationQR.registrationUrl).then(() => {
+        this.toast.showSuccess('تم نسخ الرابط بنجاح');
+      });
+    }
+  }
+
+  openQRModal(): void {
+    this.showQRModal = true;
+  }
+
+  closeQRModal(): void {
+    this.showQRModal = false;
+  }
+
   refreshDashboardData(): void {
-    // Simulate API call to refresh data
-    console.log('Refreshing dashboard data...');
-    
-    // Update some stats randomly
-    this.dashboardStats.washesToday += Math.floor(Math.random() * 3);
-    this.dashboardStats.todayRevenue += Math.floor(Math.random() * 50);
+    if (this.merchantId) {
+      this.loadDashboardData();
+    }
   }
 
   getTimeAgo(timeString: string): string {
@@ -120,7 +305,6 @@ export class MerchantDashboardComponent implements OnInit, OnDestroy {
 
   addCustomer(): void {
     // Implementation for adding customer
-    console.log('Opening add customer modal...');
     this.router.navigate(['/merchant/customers'], { queryParams: { add: 'true' } });
   }
 
@@ -128,18 +312,20 @@ export class MerchantDashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/merchant/customers']);
   }
 
-  viewReports(): void {
-    // Implementation for viewing reports
-    console.log('Opening reports...');
-  }
 
-  editLoyaltySettings(): void {
-    // Implementation for editing loyalty settings
-    console.log('Editing loyalty settings...');
-  }
 
   viewAllActivity(): void {
     this.router.navigate(['/merchant/activity-logs']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.toast.showSuccess('تم تسجيل الخروج بنجاح');
+    this.router.navigate(['/auth/signin']);
+  }
+
+  goBack(): void {
+    window.history.back();
   }
 
   ngOnDestroy(): void {

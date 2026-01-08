@@ -1,81 +1,0 @@
-<div class="customers-container">
-  <div class="header">
-    <h1>إدارة العملاء</h1>
-    <p>تتبع ومراقبة جميع عملاء المنصة</p>
-  </div>
-
-  <!-- Search Section -->
-  <div class="search-section">
-    <div class="search-box">
-      <input 
-        type="text" 
-        [(ngModel)]="searchTerm"
-        (input)="searchCustomers()"
-        placeholder="ابحث عن عميل..."
-        dir="rtl"
-      >
-      <span class="search-icon">🔍</span>
-    </div>
-  </div>
-
-  <!-- Customers Table -->
-  <div class="table-container">
-    <div *ngIf="isLoading" class="loading">
-      <div class="spinner"></div>
-      <p>جاري التحميل...</p>
-    </div>
-
-    <div *ngIf="!isLoading && filteredCustomers.length > 0" class="table-wrapper">
-      <table class="customers-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>اسم العميل</th>
-            <th>البريد الإلكتروني</th>
-            <th>الهاتف</th>
-            <th>عدد الغسلات</th>
-            <th>الإنفاق</th>
-            <th>تاريخ الانضمام</th>
-            <th>الحالة</th>
-            <th>الإجراء</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let customer of filteredCustomers" class="table-row">
-            <td>{{ customer.id }}</td>
-            <td>{{ customer.name }}</td>
-            <td>{{ customer.email }}</td>
-            <td>{{ customer.phone }}</td>
-            <td>{{ customer.totalWashes }}</td>
-            <td>{{ customer.totalSpent | number }} ر.س</td>
-            <td>{{ customer.joinDate }}</td>
-            <td>
-              <span 
-                class="status-badge"
-                [class.active]="customer.status === 'active'"
-                [class.suspended]="customer.status === 'suspended'"
-              >
-                {{ customer.status === 'active' ? 'نشط' : 'معلق' }}
-              </span>
-            </td>
-            <td>
-              <button 
-                class="action-btn"
-                [class.suspend]="customer.status === 'active'"
-                [class.activate]="customer.status === 'suspended'"
-                (click)="suspendCustomer(customer.id)"
-              >
-                {{ customer.status === 'active' ? 'إيقاف' : 'تفعيل' }}
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div *ngIf="!isLoading && filteredCustomers.length === 0" class="no-results">
-      <span class="no-results-icon">😢</span>
-      <p>لا توجد نتائج</p>
-    </div>
-  </div>
-</div>

@@ -5,6 +5,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ToastService } from './toast.service';
 import { AuthService } from './auth.service';
+import { ApiResponse } from './api.service';
 
 export interface CustomerProfile {
   id: string;
@@ -17,6 +18,8 @@ export interface CustomerProfile {
   loyaltyCards: LoyaltyCard[];
   washes: WashHistory[];
   notifications: Notification[];
+  totalWashes?: number;
+  loyaltyPoints?: number;
 }
 
 export interface LoyaltyCard {
@@ -30,6 +33,38 @@ export interface LoyaltyCard {
   expiresAt: string;
   progress: number;
   isActive: boolean;
+  isPaused?: boolean;
+  merchant?: string;
+  washesCompleted?: number;
+  washesRequired?: number;
+  expiryDate?: string;
+  status?: string;
+  
+  // Extended merchant settings
+  merchantCity?: string;
+  merchantPhone?: string;
+  customPrimaryColor?: string;
+  customSecondaryColor?: string;
+  customBusinessTagline?: string;
+  customRewardMessage?: string;
+  rewardDescription?: string;
+  rewardTimeLimitDays?: number;
+  
+  // Reward status
+  isRewardEarned?: boolean;
+  rewardQRCode?: string;
+  rewardEarnedAt?: string;
+  rewardExpiresAt?: string;
+  isRewardClaimed?: boolean;
+  rewardClaimedAt?: string;
+  
+  // Statistics
+  daysRemaining?: number;
+  totalWashesWithMerchant?: number;
+  lastWashDate?: string;
+  
+  // Computed display helpers
+  currentWashes?: number;
 }
 
 export interface WashHistory {
@@ -61,6 +96,17 @@ export interface Reward {
   value: number;
   expiresAt: string;
   status: 'available' | 'claimed' | 'expired';
+  pointsRequired?: number;
+  currentPoints?: number;
+  merchant?: string;
+  icon?: string;
+}
+
+export interface CarPhoto {
+  id: number;
+  photoUrl: string;
+  uploadedAt: string;
+  description?: string;
 }
 
 @Injectable({
@@ -82,11 +128,10 @@ export class CustomerService {
     private toast: ToastService,
     private authService: AuthService
   ) {
-    // Load demo data on initialization
-    this.loadDemoData();
+    // No longer loading demo data - using real APIs
   }
 
-  // Demo Data (Replace with real API calls)
+  // Demo Data - DEPRECATED (keeping for fallback only)
   private loadDemoData(): void {
     // Demo Profile
     const demoProfile: CustomerProfile = {
@@ -203,14 +248,63 @@ export class CustomerService {
       return of(this.profile()!);
     }
 
-    return this.http.get<CustomerProfile>(`${environment.apiUrl}/Customer/profile/${userId}`)
+    return this.http.get<ApiResponse<CustomerProfile>>(`${environment.apiUrl}/customer/${userId}/profile`)
       .pipe(
-        tap(profile => this.profile.set(profile)),
+        map(response => {
+          if (response.success && response.data) {
+            // Map backend DTO to frontend interface
+            const profile: CustomerProfile = {
+              ...response.data,
+              loyaltyCards: (response.data as any).loyaltyCards?.map((lc: any) => ({
+                id: lc.id,
+                merchantId: lc.merchantId,
+                merchantName: lc.merchantName,
+                merchantLogo: lc.merchantLogo,
+                washesRemaining: lc.washesRequired - lc.washesCompleted,
+                totalWashes: lc.washesRequired,
+                expiresAt: lc.expiresAt,
+                progress: lc.progress || 0,
+                isActive: lc.isActive
+              })) || [],
+              washes: (response.data as any).washes?.map((w: any) => ({
+                id: w.id,
+                merchantName: w.merchantName,
+                merchantLogo: w.merchantLogo,
+                date: w.washDate?.split('T')[0] || w.washDate,
+                time: new Date(w.washDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+                amount: w.amount,
+                status: w.status,
+                rating: w.rating
+              })) || [],
+              notifications: (response.data as any).notifications?.map((n: any) => ({
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                type: n.type,
+                date: n.createdAt?.split('T')[0] || n.createdAt,
+                read: n.isRead,
+                icon: this.getNotificationIcon(n.type)
+              })) || []
+            };
+            this.profile.set(profile);
+            return profile;
+          }
+          throw new Error(response.message || 'Failed to load profile');
+        }),
         catchError(error => {
           this.toast.showError('فشل في تحميل بيانات الملف الشخصي');
-          return of(this.profile()!); // Return demo data on error
+          return of(this.profile()!); // Return cached data on error
         })
       );
+  }
+
+  private getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'promotion': return '🎁';
+      case 'success': return '✅';
+      case 'warning': return '⚠️';
+      default: return 'ℹ️';
+    }
   }
 
   getWashHistory(): Observable<WashHistory[]> {
@@ -220,9 +314,25 @@ export class CustomerService {
       return of(this.washes());
     }
 
-    return this.http.get<WashHistory[]>(`${environment.apiUrl}/Customer/washes/${userId}`)
+    return this.http.get<ApiResponse<WashHistory[]>>(`${environment.apiUrl}/customer/washes/${userId}`)
       .pipe(
-        tap(washes => this.washes.set(washes)),
+        map(response => {
+          if (response.success && response.data) {
+            const washes: WashHistory[] = response.data.map((w: any) => ({
+              id: w.id,
+              merchantName: w.merchantName,
+              merchantLogo: w.merchantLogo,
+              date: w.washDate?.split('T')[0] || w.washDate,
+              time: new Date(w.washDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+              amount: w.amount,
+              status: w.status,
+              rating: w.rating
+            }));
+            this.washes.set(washes);
+            return washes;
+          }
+          throw new Error(response.message || 'Failed to load wash history');
+        }),
         catchError(error => {
           this.toast.showError('فشل في تحميل سجل الغسلات');
           return of(this.washes());
@@ -237,9 +347,24 @@ export class CustomerService {
       return of(this.notifications());
     }
 
-    return this.http.get<Notification[]>(`${environment.apiUrl}/Customer/notifications/${userId}`)
+    return this.http.get<ApiResponse<Notification[]>>(`${environment.apiUrl}/customer/notifications/${userId}`)
       .pipe(
-        tap(notifications => this.notifications.set(notifications)),
+        map(response => {
+          if (response.success && response.data) {
+            const notifications: Notification[] = response.data.map((n: any) => ({
+              id: n.id,
+              title: n.title,
+              message: n.message,
+              type: n.type,
+              date: n.createdAt?.split('T')[0] || n.createdAt,
+              read: n.isRead,
+              icon: this.getNotificationIcon(n.type)
+            }));
+            this.notifications.set(notifications);
+            return notifications;
+          }
+          throw new Error(response.message || 'Failed to load notifications');
+        }),
         catchError(error => {
           this.toast.showError('فشل في تحميل الإشعارات');
           return of(this.notifications());
@@ -254,9 +379,24 @@ export class CustomerService {
       return of(this.rewards());
     }
 
-    return this.http.get<Reward[]>(`${environment.apiUrl}/Customer/rewards/${userId}`)
+    return this.http.get<ApiResponse<Reward[]>>(`${environment.apiUrl}/customer/rewards/${userId}`)
       .pipe(
-        tap(rewards => this.rewards.set(rewards)),
+        map(response => {
+          if (response.success && response.data) {
+            const rewards: Reward[] = response.data.map((r: any) => ({
+              id: r.id,
+              title: r.title,
+              description: r.description,
+              type: r.type,
+              value: r.value,
+              expiresAt: r.expiresAt?.split('T')[0] || r.expiresAt,
+              status: r.status
+            }));
+            this.rewards.set(rewards);
+            return rewards;
+          }
+          throw new Error(response.message || 'Failed to load rewards');
+        }),
         catchError(error => {
           this.toast.showError('فشل في تحميل المكافآت');
           return of(this.rewards());
@@ -264,82 +404,229 @@ export class CustomerService {
       );
   }
 
+  /**
+   * Get rewards for a specific user ID
+   */
+  getRewardsById(userId: string | number): Observable<any> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/customer/${userId}/rewards`
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading rewards:', error);
+        return of({ success: false, data: [] });
+      })
+    );
+  }
+
   purchasePass(passData: any): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/Customer/purchase-pass`, passData)
+    const userId = this.authService.user()?.id;
+    if (!userId) {
+      this.toast.showError('يجب تسجيل الدخول أولاً');
+      return of(null);
+    }
+
+    return this.http.post<ApiResponse<any>>(`${environment.apiUrl}/customer/purchase-pass`, {
+      ...passData,
+      userId
+    })
       .pipe(
-        tap(() => {
-          this.toast.showSuccess('تم شراء الباقة بنجاح');
+        map(response => {
+          if (response.success) {
+            this.toast.showSuccess('تم شراء الباقة بنجاح');
+            return response.data;
+          }
+          throw new Error(response.message || 'Failed to purchase pass');
         }),
         catchError(error => {
-          this.toast.showError('فشل في شراء الباقة');
+          this.toast.showError(error.error?.message || 'فشل في شراء الباقة');
           return of(null);
         })
       );
   }
 
   markNotificationAsRead(notificationId: string): Observable<any> {
-    return this.http.put(`${environment.apiUrl}/Customer/notifications/${notificationId}/read`, {})
+    return this.http.put<ApiResponse<any>>(`${environment.apiUrl}/customer/notification/${notificationId}/read`, {})
       .pipe(
-        tap(() => {
-          this.toast.showSuccess('تم تحديث الإشعار');
-          this.notifications.update(notifs =>
-            notifs.map(n => n.id === notificationId ? { ...n, read: true } : n)
-          );
+        map(response => {
+          if (response.success) {
+            this.toast.showSuccess('تم تحديث الإشعار');
+            this.notifications.update(notifs =>
+              notifs.map(n => n.id === notificationId ? { ...n, read: true } : n)
+            );
+            return response.data;
+          }
+          throw new Error(response.message || 'Failed to mark notification as read');
         }),
         catchError(error => {
-          this.toast.showError('فشل في تحديث الإشعار');
+          this.toast.showError(error.error?.message || 'فشل في تحديث الإشعار');
           return of(null);
         })
       );
   }
 
   claimReward(rewardId: string): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/Customer/rewards/${rewardId}/claim`, {})
+    const userId = this.authService.user()?.id;
+    if (!userId) {
+      this.toast.showError('يجب تسجيل الدخول أولاً');
+      return of(null);
+    }
+
+    return this.http.post<ApiResponse<any>>(`${environment.apiUrl}/customer/rewards/${rewardId}/claim`, { userId })
       .pipe(
-        tap(() => {
-          this.toast.showSuccess('تم استلام المكافأة بنجاح');
-          this.rewards.update(rewards =>
-            rewards.map(r => r.id === rewardId ? { ...r, status: 'claimed' } : r)
-          );
+        map(response => {
+          if (response.success) {
+            this.toast.showSuccess('تم استلام المكافأة بنجاح');
+            this.rewards.update(rewards =>
+              rewards.map(r => r.id === rewardId ? { ...r, status: 'claimed' } : r)
+            );
+            return response.data;
+          }
+          throw new Error(response.message || 'Failed to claim reward');
         }),
         catchError(error => {
-          this.toast.showError('فشل في استلام المكافأة');
+          this.toast.showError(error.error?.message || 'فشل في استلام المكافأة');
           return of(null);
         })
       );
   }
 
   updateProfile(profileData: any): Observable<any> {
-    return this.http.put(`${environment.apiUrl}/Customer/profile`, profileData)
+    const userId = this.authService.user()?.id;
+    if (!userId) {
+      this.toast.showError('يجب تسجيل الدخول أولاً');
+      return of(null);
+    }
+
+    return this.http.put<ApiResponse<any>>(`${environment.apiUrl}/customer/profile`, {
+      ...profileData,
+      userId
+    })
       .pipe(
-        tap(() => {
-          this.toast.showSuccess('تم تحديث الملف الشخصي بنجاح');
-          this.getCustomerProfile().subscribe();
+        map(response => {
+          if (response.success) {
+            this.toast.showSuccess('تم تحديث الملف الشخصي بنجاح');
+            this.getCustomerProfile().subscribe();
+            return response.data;
+          }
+          throw new Error(response.message || 'Failed to update profile');
         }),
         catchError(error => {
-          this.toast.showError('فشل في تحديث الملف الشخصي');
+          this.toast.showError(error.error?.message || 'فشل في تحديث الملف الشخصي');
           return of(null);
         })
       );
   }
 
-  addFunds(amount: number): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/Customer/wallet/add-funds`, { amount })
+  addFunds(amount: number, paymentMethod: string = 'wallet'): Observable<any> {
+    const userId = this.authService.user()?.id;
+    if (!userId) {
+      this.toast.showError('يجب تسجيل الدخول أولاً');
+      return of(null);
+    }
+
+    return this.http.post<ApiResponse<any>>(`${environment.apiUrl}/customer/wallet/add-funds`, {
+      userId,
+      amount,
+      paymentMethod
+    })
       .pipe(
-        tap(() => {
-          this.toast.showSuccess(`تم إضافة ${amount} ريال إلى المحفظة`);
-          if (this.profile()) {
-            this.profile.set({
-              ...this.profile()!,
-              walletBalance: this.profile()!.walletBalance + amount
-            });
+        map(response => {
+          if (response.success) {
+            this.toast.showSuccess(`تم إضافة ${amount} ريال إلى المحفظة`);
+            // Refresh profile to get updated balance
+            this.getCustomerProfile().subscribe();
+            return response.data;
           }
+          throw new Error(response.message || 'Failed to add funds');
         }),
         catchError(error => {
-          this.toast.showError('فشل في إضافة الرصيد');
+          this.toast.showError(error.error?.message || 'فشل في إضافة الرصيد');
           return of(null);
         })
       );
+  }
+
+  // Download QR Code
+  downloadQRCode(): Observable<Blob> {
+    const userId = this.authService.user()?.id || '';
+    return this.http.get(
+      `${environment.apiUrl}/customer/${userId}/qr-code`,
+      { responseType: 'blob' }
+    ).pipe(
+      catchError(error => {
+        this.toast.showError('فشل في تحميل رمز QR');
+        throw error;
+      })
+    ) as Observable<Blob>;
+  }
+
+  // ✅ Car Photos Methods
+  uploadCarPhoto(photo: File): Observable<any> {
+    const userId = this.authService.user()?.id;
+    if (!userId) {
+      this.toast.showError('يجب تسجيل الدخول أولاً');
+      return of(null);
+    }
+
+    const formData = new FormData();
+    formData.append('photo', photo);
+
+    return this.http.post<ApiResponse<any>>(
+      `${environment.apiUrl}/customer/car-photos/${userId}`,
+      formData
+    ).pipe(
+      map(response => {
+        if (response.success) {
+          this.toast.showSuccess('تم رفع صورة السيارة بنجاح');
+          return response.data;
+        }
+        throw new Error(response.message || 'Failed to upload photo');
+      }),
+      catchError(error => {
+        this.toast.showError(error.error?.message || 'فشل في رفع الصورة');
+        return of(null);
+      })
+    );
+  }
+
+  getCarPhotos(): Observable<any[]> {
+    const userId = this.authService.user()?.id;
+    if (!userId) {
+      return of([]);
+    }
+
+    return this.http.get<ApiResponse<any[]>>(
+      `${environment.apiUrl}/customer/car-photos/${userId}`
+    ).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error loading car photos:', error);
+        return of([]);
+      })
+    );
+  }
+
+  deleteCarPhoto(photoId: string): Observable<any> {
+    return this.http.delete<ApiResponse<any>>(
+      `${environment.apiUrl}/customer/car-photo/${photoId}`
+    ).pipe(
+      map(response => {
+        if (response.success) {
+          this.toast.showSuccess('تم حذف الصورة بنجاح');
+          return response.data;
+        }
+        throw new Error(response.message || 'Failed to delete photo');
+      }),
+      catchError(error => {
+        this.toast.showError(error.error?.message || 'فشل في حذف الصورة');
+        return of(null);
+      })
+    );
   }
 
   // Demo Methods
@@ -349,5 +636,232 @@ export class CustomerService {
 
   addDemoNotification(notification: Notification): void {
     this.notifications.update(notifs => [notification, ...notifs]);
+  }
+
+  // ================================================
+  // ⭐ **الخدمات والاشتراكات الجديدة**
+  // ================================================
+
+  /**
+   * الحصول على جميع المغسلات المتاحة
+   */
+  getAllMerchants(): Observable<any[]> {
+    return this.http.get<ApiResponse<any[]>>(
+      `${environment.apiUrl}/merchant/all`
+    ).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error loading merchants:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * الحصول على خدمات مغسلة معينة
+   */
+  getMerchantServices(merchantId: string): Observable<any[]> {
+    return this.http.get<ApiResponse<any[]>>(
+      `${environment.apiUrl}/services/merchant/${merchantId}`
+    ).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error loading services:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * الحصول على اشتراكات العميل الحالية
+   */
+  getMySubscriptions(): Observable<any[]> {
+    const userId = this.authService.user()?.id || '';
+    return this.http.get<ApiResponse<any[]>>(
+      `${environment.apiUrl}/subscriptions/customer-by-user/${userId}`
+    ).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error loading subscriptions:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * الاشتراك في مغسلة
+   */
+  subscribeToMerchant(merchantId: string, planType: string = 'free'): Observable<any> {
+    return this.http.post<ApiResponse<any>>(
+      `${environment.apiUrl}/subscriptions/subscribe`,
+      { merchantId, planType }
+    ).pipe(
+      map(response => {
+        if (response.success) {
+          this.toast.showSuccess('تم الاشتراك بنجاح!');
+          return response.data;
+        }
+        throw new Error(response.message || 'Failed to subscribe');
+      }),
+      catchError(error => {
+        this.toast.showError(error.error?.message || 'فشل الاشتراك');
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * إلغاء الاشتراك
+   */
+  cancelSubscription(subscriptionId: string): Observable<any> {
+    return this.http.post<ApiResponse<any>>(
+      `${environment.apiUrl}/subscriptions/cancel/${subscriptionId}`,
+      {}
+    ).pipe(
+      map(response => {
+        if (response.success) {
+          this.toast.showSuccess('تم إلغاء الاشتراك بنجاح');
+          return response.data;
+        }
+        throw new Error(response.message || 'Failed to cancel');
+      }),
+      catchError(error => {
+        this.toast.showError(error.error?.message || 'فشل إلغاء الاشتراك');
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * الحصول على رصيد المحفظة
+   */
+  getWalletBalance(): Observable<any> {
+    const userId = this.authService.user()?.id || '';
+    return this.http.get<any>(
+      `${environment.apiUrl}/customer/${userId}/wallet`
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading wallet balance:', error);
+        return of({ success: false, data: { balance: 0 } });
+      })
+    );
+  }
+  
+  /**
+   * الحصول على بطاقات الولاء للعميل
+   */
+  getLoyaltyCards(userId: string | number): Observable<any> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/customer/${userId}/loyalty-cards`
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading loyalty cards:', error);
+        return of({ success: false, data: [] });
+      })
+    );
+  }
+  
+  /**
+   * الحصول على رمز QR الخاص بالعميل
+   */
+  getCustomerQRCode(userId: string | number): Observable<any> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/qrcode/${userId}`
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading QR code:', error);
+        return of({ success: false, data: null });
+      })
+    );
+  }
+  
+  /**
+   * الحصول على صورة رمز QR الخاص بالعميل
+   */
+  getCustomerQRCodeImage(userId: string | number): Observable<Blob> {
+    return this.http.get(
+      `${environment.apiUrl}/qrcode/${userId}/image`,
+      { responseType: 'blob' }
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading QR code image:', error);
+        return of(new Blob());
+      })
+    );
+  }
+  
+  /**
+   * الحصول على سجل الغسلات مع userId
+   */
+  getWashHistoryById(userId: string | number): Observable<any> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/customer/${userId}/wash-history`
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading wash history:', error);
+        return of({ success: false, data: [] });
+      })
+    );
+  }
+  
+  /**
+   * الحصول على صور السيارة مع userId
+   */
+  getCarPhotosById(userId: string | number): Observable<any> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/customer/car-photos/${userId}`
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading car photos:', error);
+        return of({ success: false, data: [] });
+      })
+    );
+  }
+  
+  /**
+   * رفع صورة السيارة مع userId
+   */
+  uploadCarPhotoById(userId: string | number, photo: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('photo', photo);
+    
+    return this.http.post<any>(
+      `${environment.apiUrl}/customer/car-photos/${userId}`,
+      formData
+    ).pipe(
+      catchError(error => {
+        console.error('Error uploading car photo:', error);
+        return of({ success: false });
+      })
+    );
+  }
+  
+  /**
+   * الحصول على الملف الشخصي للعميل بواسطة userId
+   */
+  getProfileById(userId: string | number): Observable<any> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/customer/${userId}/profile`
+    ).pipe(
+      catchError(error => {
+        console.error('Error loading customer profile:', error);
+        return of({ success: false, data: null });
+      })
+    );
   }
 }

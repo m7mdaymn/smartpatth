@@ -12,6 +12,8 @@ export interface User {
   role: 'customer' | 'merchant' | 'superadmin';
   phone?: string;
   avatar?: string;
+  subscriptionStatus?: 'active' | 'inactive' | 'pending' | 'awaiting_approval' | 'expired';
+  businessName?: string;
 }
 
 export interface LoginRequest {
@@ -29,6 +31,26 @@ export interface CustomerRegisterRequest {
   email: string;
   phone: string;
   password: string;
+}
+
+export interface CustomerRegistrationData {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  merchantId?: string;
+  merchantCode?: string;
+  carPlateNumber?: string;
+}
+
+export interface MerchantPublicInfo {
+  merchantId: string;
+  businessName: string;
+  city: string;
+  address?: string;
+  logo?: string;
+  plan: string;
+  isActive: boolean;
 }
 
 export interface MerchantRegisterRequest {

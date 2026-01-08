@@ -7,7 +7,7 @@ import { trigger, transition, style, animate, stagger, query } from '@angular/an
 @Component({
   selector: 'app-selection',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './selection.component.html',
   styleUrls: ['./selection.component.css'],
   animations: [

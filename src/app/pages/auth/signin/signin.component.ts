@@ -54,26 +54,32 @@ export class SigninComponent {
     this.isLoading = true;
     const { email, password } = this.signinForm.value;
 
-    // Simulate API call for now
-    setTimeout(() => {
-      this.isLoading = false;
-      
-      // For demo purposes - In real app, use authService.login()
-      if (email === 'merchant@example.com') {
-        this.toast.showSuccess('تم تسجيل الدخول بنجاح!');
-        this.router.navigate(['/merchant/dashboard']);
-      } else if (email === 'customer@example.com') {
-        this.toast.showSuccess('تم تسجيل الدخول بنجاح!');
-        this.router.navigate(['/customer/dashboard']);
-      } else if (email === 'admin@example.com') {
-        this.toast.showSuccess('تم تسجيل الدخول بنجاح!');
-        this.router.navigate(['/superadmin/dashboard']);
-      } else {
-        // Demo success
-        this.toast.showSuccess('تم تسجيل الدخول بنجاح!');
-        this.router.navigate(['/customer/dashboard']);
+    // Use real API call
+    this.authService.login({ email, password }).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        const userRole = response.user?.role || 'customer';
+        const subscriptionStatus = response.user?.subscriptionStatus;
+        
+        // Navigate based on user role
+        if (userRole === 'merchant') {
+          // Check if merchant is inactive/pending - redirect to inactive page
+          if (subscriptionStatus === 'inactive' || subscriptionStatus === 'pending' || subscriptionStatus === 'awaiting_approval') {
+            this.router.navigate(['/merchant/inactive']);
+          } else {
+            this.router.navigate(['/merchant/dashboard']);
+          }
+        } else if (userRole === 'superadmin') {
+          this.router.navigate(['/superadmin/dashboard']);
+        } else {
+          this.router.navigate(['/customer/dashboard']);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        // Error is already handled by AuthService with toast
       }
-    }, 1500);
+    });
   }
 
   togglePasswordVisibility(): void {

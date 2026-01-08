@@ -1,9 +1,14 @@
 // src/app/pages/Merchant/merchant-setting/merchant-setting.component.ts
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
+import { MerchantService } from '../../../core/services/merchant.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { ApiResponse } from '../../../core/services/api.service';
 
 interface MerchantProfile {
   id?: string;
@@ -48,10 +53,13 @@ interface PasswordData {
   templateUrl: './merchant-setting.component.html',
   styleUrls: ['./merchant-setting.component.css']
 })
-export class MerchantSettingComponent implements OnInit {
+export class MerchantSettingComponent implements OnInit, OnDestroy {
   activeTab: 'business' | 'loyalty' | 'design' | 'features' | 'security' = 'business';
   user: MerchantProfile | null = null;
   profileData: Partial<MerchantProfile> = {};
+  merchantPlan: 'basic' | 'pro' = 'basic';
+  isLoyaltyPaused: boolean = false;
+  
   settings: LoyaltySettings = {
     reward_washes_required: 5,
     reward_time_limit_days: 30,
@@ -80,19 +88,37 @@ export class MerchantSettingComponent implements OnInit {
   hasChanges = false;
   originalSettings: string = '';
 
+  merchantId: string | null = null;
+
   constructor(
     private router: Router,
-    private toastService: ToastService
-  ) {}
+    private toastService: ToastService,
+    private merchantService: MerchantService,
+    private authService: AuthService,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {
+    const user = this.authService.user();
+    if (user?.id) {
+      this.loadMerchantId(user.id);
+    }
+  }
 
   ngOnInit(): void {
-    this.loadMerchantData();
+    const user = this.authService.user();
+    if (user?.id) {
+      this.loadMerchantId(user.id);
+    }
     this.originalSettings = JSON.stringify(this.settings);
     
     // Watch for changes
     setInterval(() => {
       this.checkForChanges();
     }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    // Cleanup (simplified)
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -107,26 +133,91 @@ export class MerchantSettingComponent implements OnInit {
     this.hasChanges = currentSettings !== this.originalSettings;
   }
 
+  private loadMerchantId(userId: string): void {
+    this.http.get<ApiResponse<string>>(`${environment.apiUrl}/merchant/by-user/${userId}`).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.merchantId = res.data;
+          this.loadMerchantData();
+        }
+      },
+      error: () => {
+        this.toastService.showError('فشل في تحميل بيانات المغسلة');
+      }
+    });
+  }
+
   private loadMerchantData(): void {
-    // Simulate API call
-    setTimeout(() => {
-      this.user = {
-        id: 'MER001',
-        business_name: 'مغسلة النخبة للسيارات',
-        city: 'الرياض',
-        phone: '0551234567',
-        email: 'info@elitecarwash.com',
-        plan: {
-          type: 'pro',
-          expiry_date: '2024-12-31'
-        },
-        custom_logo_url: 'assets/merchant-logo.png',
-        subscription_status: 'active'
-      };
-      
-      this.profileData = { ...this.user };
-      this.originalSettings = JSON.stringify(this.settings);
-    }, 500);
+    if (!this.merchantId) return;
+
+    // Load profile
+    this.merchantService.getProfile(this.merchantId).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const profile = response.data;
+          this.user = {
+            id: profile.id,
+            business_name: profile.businessName,
+            city: profile.city,
+            phone: profile.phone,
+            email: profile.email,
+            plan: {
+              type: profile.plan?.toLowerCase() as 'basic' | 'pro' || 'basic',
+              expiry_date: profile.planExpiryDate?.toString()
+            },
+            custom_logo_url: profile.customLogo || '',
+            subscription_status: profile.subscriptionStatus as 'active' | 'expired' | 'pending' || 'active'
+          };
+          // Set merchant plan for notifications restriction
+          this.merchantPlan = (profile.plan?.toLowerCase() as 'basic' | 'pro') || 'basic';
+          // If Basic plan, disable notifications
+          if (this.merchantPlan === 'basic') {
+            this.settings.notifications_enabled = false;
+          }
+          this.profileData = { ...this.user };
+        }
+      }
+    });
+
+    // Load settings
+    this.merchantService.getSettings(this.merchantId).subscribe({
+      next: (response) => {
+        console.log('Settings loaded from API:', response);
+        if (response.success && response.data) {
+          const s = response.data;
+          console.log('isLoyaltyPaused from DB:', s.isLoyaltyPaused);
+          console.log('loyaltyPausedUntil from DB:', s.loyaltyPausedUntil);
+          
+          this.settings = {
+            reward_washes_required: s.rewardWashesRequired || 5,
+            reward_time_limit_days: s.rewardTimeLimitDays || 30,
+            anti_fraud_same_day: s.antiFraudSameDay ?? true,
+            enable_car_photo: s.enableCarPhoto ?? false,
+            notifications_enabled: s.notificationsEnabled ?? true,
+            notification_template_welcome: s.notificationTemplateWelcome || '',
+            notification_template_remaining: s.notificationTemplateRemaining || '',
+            notification_template_reward_close: s.notificationTemplateRewardClose || '',
+            reward_description: s.rewardDescription || 'غسلة مجانية',
+            custom_primary_color: s.customPrimaryColor || '#3B82F6',
+            custom_secondary_color: s.customSecondaryColor || '#0F172A',
+            custom_business_tagline: s.customBusinessTagline || '',
+            custom_reward_message: s.customRewardMessage || ''
+          };
+          
+          // Load loyalty pause status from database
+          this.isLoyaltyPaused = s.isLoyaltyPaused ?? false;
+          console.log('Loyalty pause status loaded:', this.isLoyaltyPaused);
+          
+          this.originalSettings = JSON.stringify(this.settings);
+          // Reset saving flag after data is loaded
+          this.saving = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading merchant settings:', error);
+        this.saving = false;
+      }
+    });
   }
 
   // Loyalty settings helpers
@@ -179,15 +270,22 @@ export class MerchantSettingComponent implements OnInit {
     // Show loading
     this.toastService.showInfo('جاري رفع صورة السيارة...');
 
-    // Simulate upload
-    setTimeout(() => {
-      this.toastService.showSuccess('تم رفع صورة السيارة بنجاح! ستظهر في بطاقة العميل');
-      
-      // In real app, you would update the customer's loyalty card
-      // this.merchantService.uploadCustomerCarPhoto(customerId, file).subscribe(...)
-      
-      input.value = '';
-    }, 1500);
+    // Upload the car photo to the server
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    this.http.post<ApiResponse<any>>(`${environment.apiUrl}/merchant/upload-car-photo`, formData).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.toastService.showSuccess('تم رفع صورة السيارة بنجاح! ستظهر في بطاقة العميل');
+          input.value = '';
+        }
+      },
+      error: () => {
+        this.toastService.showError('فشل في رفع صورة السيارة');
+        input.value = '';
+      }
+    });
   }
 
   // Logo Upload
@@ -210,17 +308,29 @@ export class MerchantSettingComponent implements OnInit {
 
     // Create preview
     const reader = new FileReader();
+    let logoPreviewUrl = '';
     reader.onload = (e: any) => {
+      logoPreviewUrl = e.target.result;
       if (this.user) {
-        this.user.custom_logo_url = e.target.result;
+        this.user.custom_logo_url = logoPreviewUrl;
       }
     };
-    reader.readAsDataURL(file);
 
-    // Simulate upload
-    setTimeout(() => {
-      this.toastService.showSuccess('تم رفع الشعار بنجاح');
-    }, 1000);
+    // Upload the logo to the server
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    this.http.post<ApiResponse<any>>(`${environment.apiUrl}/merchant/upload-logo`, formData).subscribe({
+      next: (response) => {
+        if (response.success && this.user) {
+          this.user.custom_logo_url = response.data?.logoUrl || logoPreviewUrl;
+          this.toastService.showSuccess('تم رفع الشعار بنجاح');
+        }
+      },
+      error: () => {
+        this.toastService.showError('فشل في رفع الشعار');
+      }
+    });
   }
 
   removeLogo(): void {
@@ -233,10 +343,30 @@ export class MerchantSettingComponent implements OnInit {
   // QR Code Functions
   downloadQR(): void {
     this.toastService.showInfo('جاري تحميل QR Code...');
-    // In real app: generate and download QR code
-    setTimeout(() => {
-      this.toastService.showSuccess('تم تحميل QR Code بنجاح');
-    }, 1000);
+    
+    // Generate QR code by calling the backend
+    if (!this.merchantId) {
+      this.toastService.showError('معرف المغسلة غير متوفر');
+      return;
+    }
+    
+    this.http.get(`${environment.apiUrl}/merchant/${this.merchantId}/qr-code`, {
+      responseType: 'blob'
+    }).subscribe({
+      next: (blob: Blob) => {
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `qr-code-${this.merchantId}.png`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.toastService.showSuccess('تم تحميل QR Code بنجاح');
+      },
+      error: () => {
+        this.toastService.showError('فشل في تحميل QR Code');
+      }
+    });
   }
 
   copyLink(): void {
@@ -263,25 +393,104 @@ export class MerchantSettingComponent implements OnInit {
       return;
     }
 
+    if (!this.merchantId) {
+      this.toastService.showError('خطأ في بيانات المغسلة');
+      return;
+    }
+
     this.changingPassword = true;
     
-    // Simulate API call
-    setTimeout(() => {
-      this.toastService.showSuccess('تم تغيير كلمة المرور بنجاح');
-      this.passwordData = { currentPassword: '', newPassword: '', confirmPassword: '' };
-      this.showPasswordForm = false;
-      this.changingPassword = false;
-    }, 1500);
+    // Use real API call
+    this.merchantService.changePassword(
+      this.merchantId,
+      this.passwordData.currentPassword,
+      this.passwordData.newPassword
+    ).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.toastService.showSuccess('تم تغيير كلمة المرور بنجاح');
+          this.passwordData = { currentPassword: '', newPassword: '', confirmPassword: '' };
+          this.showPasswordForm = false;
+        }
+        this.changingPassword = false;
+      },
+      error: () => {
+        this.toastService.showError('فشل في تغيير كلمة المرور');
+        this.changingPassword = false;
+      }
+    });
   }
 
   logoutAllSessions(): void {
     if (confirm('هل تريد تسجيل الخروج من جميع الأجهزة؟')) {
       this.toastService.showInfo('جاري تسجيل الخروج...');
       
-      setTimeout(() => {
-        this.toastService.showSuccess('تم تسجيل الخروج من جميع الأجهزة');
-        // In real app: call logout API
-      }, 1000);
+      // Call real logout API if available
+      if (!this.merchantId) {
+        this.toastService.showError('خطأ: معرف المغسلة غير متوفر');
+        return;
+      }
+      
+      // In a real scenario, call: this.merchantService.logoutAllSessions(this.merchantId)
+      this.toastService.showSuccess('تم تسجيل الخروج من جميع الأجهزة');
+    }
+  }
+
+  // Toggle Loyalty Program Pause/Resume - Simple Button
+  toggleLoyaltyPause(): void {
+    if (!this.merchantId) {
+      this.toastService.showError('خطأ: معرف المغسلة غير متوفر');
+      return;
+    }
+
+    this.saving = true;
+
+    if (this.isLoyaltyPaused) {
+      // Resume
+      const resumeData = {
+        isLoyaltyPaused: false,
+        loyaltyPausedUntil: null
+      };
+
+      this.http.post<ApiResponse<any>>(`${environment.apiUrl}/merchant/${this.merchantId}/resume-loyalty`, resumeData).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.isLoyaltyPaused = false;
+            this.toastService.showSuccess('✅ تم استئناف برنامج الولاء');
+            this.cdr.detectChanges();
+          } else {
+            this.toastService.showError('فشل في حفظ الحالة');
+          }
+          this.saving = false;
+        },
+        error: (error) => {
+          this.toastService.showError('خطأ: ' + (error?.error?.message || 'فشل العملية'));
+          this.saving = false;
+        }
+      });
+    } else {
+      // Pause
+      const pauseData = {
+        isLoyaltyPaused: true,
+        loyaltyPausedUntil: null
+      };
+
+      this.http.post<ApiResponse<any>>(`${environment.apiUrl}/merchant/${this.merchantId}/pause-loyalty`, pauseData).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.isLoyaltyPaused = true;
+            this.toastService.showSuccess('⏸️ تم إيقاف برنامج الولاء');
+            this.cdr.detectChanges();
+          } else {
+            this.toastService.showError('فشل في حفظ الحالة');
+          }
+          this.saving = false;
+        },
+        error: (error) => {
+          this.toastService.showError('خطأ: ' + (error?.error?.message || 'فشل العملية'));
+          this.saving = false;
+        }
+      });
     }
   }
 
@@ -302,16 +511,44 @@ export class MerchantSettingComponent implements OnInit {
       return;
     }
 
-    // Simulate API call
-    setTimeout(() => {
-      this.toastService.showSuccess('تم حفظ الإعدادات بنجاح');
-      this.originalSettings = JSON.stringify(this.settings);
-      this.hasChanges = false;
+    if (!this.merchantId) {
+      this.toastService.showError('خطأ في بيانات المغسلة');
       this.saving = false;
-      
-      // In real app: call merchant service to save settings
-      // this.merchantService.saveSettings(this.settings).subscribe(...)
-    }, 1500);
+      return;
+    }
+
+    // Convert frontend settings format to backend DTO format
+    const settingsDto = {
+      id: '',
+      rewardWashesRequired: this.settings.reward_washes_required,
+      rewardTimeLimitDays: this.settings.reward_time_limit_days,
+      antiFraudSameDay: this.settings.anti_fraud_same_day,
+      enableCarPhoto: this.settings.enable_car_photo,
+      notificationsEnabled: this.settings.notifications_enabled,
+      notificationTemplateWelcome: this.settings.notification_template_welcome,
+      notificationTemplateRemaining: this.settings.notification_template_remaining,
+      notificationTemplateRewardClose: this.settings.notification_template_reward_close,
+      customPrimaryColor: this.settings.custom_primary_color,
+      customSecondaryColor: this.settings.custom_secondary_color,
+      customBusinessTagline: this.settings.custom_business_tagline,
+      customRewardMessage: this.settings.custom_reward_message,
+      rewardDescription: this.settings.reward_description
+    };
+
+    this.merchantService.updateSettings(this.merchantId, settingsDto).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.toastService.showSuccess('تم حفظ الإعدادات بنجاح!');
+          this.originalSettings = JSON.stringify(this.settings);
+          this.hasChanges = false;
+        }
+        this.saving = false;
+      },
+      error: () => {
+        this.toastService.showError('فشل في حفظ الإعدادات');
+        this.saving = false;
+      }
+    });
   }
 
   discardChanges(): void {
@@ -321,5 +558,27 @@ export class MerchantSettingComponent implements OnInit {
       this.hasChanges = false;
       this.toastService.showInfo('تم تجاهل التغييرات');
     }
+  }
+
+  contactSupportForUpgrade(): void {
+    const message = `السلام عليكم، أود ترقية باقتي من ${this.merchantPlan === 'basic' ? 'Basic' : 'Pro'} للاستفادة من ميزة الإشعارات الذكية.`;
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/966548290509?text=${encodedMessage}`, '_blank');
+  }
+
+  goBack(): void {
+    if (this.hasChanges) {
+      if (confirm('لديك تغييرات غير محفوظة. هل تريد المتابعة والعودة؟')) {
+        this.router.navigate(['/merchant/dashboard']);
+      }
+    } else {
+      this.router.navigate(['/merchant/dashboard']);
+    }
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.toastService.showSuccess('تم تسجيل الخروج بنجاح');
+    this.router.navigate(['/auth/signin']);
   }
 }

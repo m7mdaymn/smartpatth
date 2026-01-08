@@ -1,17 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { MerchantPublicInfo } from '../../../core/models/api-response.model';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
-  selector: 'app-merchant-register',
+  selector: 'app-customer-register-merchant',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './merchant-register.component.html',
-  styleUrls: ['./merchant-register.component.css'],
+  templateUrl: './customer-register-merchant.component.html',
+  styleUrls: ['./customer-register-merchant.component.css'],
   animations: [
     trigger('fadeIn', [
       transition(':enter', [
@@ -27,44 +28,69 @@ import { trigger, transition, style, animate } from '@angular/animations';
     ])
   ]
 })
-export class MerchantRegisterComponent {
+export class CustomerRegisterMerchantComponent implements OnInit {
   registerForm: FormGroup;
   isLoading = false;
   showPassword = false;
   showConfirmPassword = false;
-  selectedPlan: 'Basic' | 'Pro' = 'Basic';
+  merchantId: string | null = null;
+  merchantInfo: MerchantPublicInfo | null = null;
+  isLoadingMerchant = true;
+  merchantError = false;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private authService: AuthService,
     private toast: ToastService
   ) {
     this.registerForm = this.fb.group({
-      // Business Info
-      businessName: ['', [Validators.required, Validators.minLength(3)]],
-      businessType: ['car_wash', [Validators.required]],
-      city: ['', [Validators.required]],
-      branchName: ['', [Validators.required]],
-      
-      // Contact Info
+      name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required, Validators.pattern(/^(05|5)(5|0|3|6|4|9|1|8|7)([0-9]{7})$/)]],
-      
-      // Subscription
-      subscriptionType: ['Basic', [Validators.required]],
-      
-      // Security
+      carPlateNumber: ['', [Validators.required, Validators.minLength(4)]],
       password: ['', [
         Validators.required,
         Validators.minLength(6),
         Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
       ]],
       confirmPassword: ['', [Validators.required]],
-      
-      // Terms
       acceptTerms: [false, [Validators.requiredTrue]]
     }, { validators: this.passwordMatchValidator });
+  }
+
+  ngOnInit(): void {
+    // Get merchantId from route params
+    this.merchantId = this.route.snapshot.paramMap.get('merchantId');
+    
+    if (this.merchantId) {
+      this.loadMerchantInfo();
+    } else {
+      this.merchantError = true;
+      this.isLoadingMerchant = false;
+      this.toast.showError('رابط التسجيل غير صالح');
+    }
+  }
+
+  loadMerchantInfo(): void {
+    if (!this.merchantId) return;
+    
+    this.authService.getMerchantPublicInfo(this.merchantId).subscribe({
+      next: (merchantInfo) => {
+        this.merchantInfo = merchantInfo;
+        this.isLoadingMerchant = false;
+        
+        if (!merchantInfo.isActive) {
+          this.merchantError = true;
+          this.toast.showError('هذا التاجر غير نشط حالياً');
+        }
+      },
+      error: () => {
+        this.isLoadingMerchant = false;
+        this.merchantError = true;
+      }
+    });
   }
 
   private passwordMatchValidator(g: FormGroup) {
@@ -73,41 +99,30 @@ export class MerchantRegisterComponent {
     return password === confirmPassword ? null : { mismatch: true };
   }
 
-  selectPlan(plan: 'Basic' | 'Pro'): void {
-    this.selectedPlan = plan;
-    this.registerForm.patchValue({ subscriptionType: plan });
-  }
-
   onSubmit(): void {
-    if (this.registerForm.invalid) {
+    if (this.registerForm.invalid || !this.merchantId) {
       this.markFormGroupTouched(this.registerForm);
       return;
     }
 
     this.isLoading = true;
+    const registerData = {
+      name: this.registerForm.value.name,
+      email: this.registerForm.value.email,
+      phone: this.registerForm.value.phone,
+      password: this.registerForm.value.password,
+      merchantId: this.merchantId,
+      carPlateNumber: this.registerForm.value.carPlateNumber
+    };
 
-const registerData = {
-  name: this.registerForm.value.businessName,
-  businessName: this.registerForm.value.businessName,
-  businessType: this.registerForm.value.businessType,
-  city: this.registerForm.value.city || "Riyadh", // افتراضي إذا مش موجود
-  branchName: this.registerForm.value.branchName || "Main Branch",
-  email: this.registerForm.value.email,
-  phone: this.registerForm.value.phone,
-  password: this.registerForm.value.password,
-  subscriptionType: this.registerForm.value.subscriptionType || "Basic",
-  paymentMethod: "cash" // القيمة الافتراضية
-};
-    // Call real API
-    this.authService.registerMerchant(registerData).subscribe({
+    this.authService.registerCustomer(registerData).subscribe({
       next: () => {
         this.isLoading = false;
-        this.toast.showSuccess('تم إنشاء حسابك بنجاح! يرجى انتظار موافقة المسؤول.');
+        this.toast.showSuccess('تم إنشاء حسابك بنجاح! سجل دخولك الآن.');
         this.router.navigate(['/auth/signin']);
       },
-      error: (error) => {
+      error: () => {
         this.isLoading = false;
-        // Error is already handled by AuthService with toast
       }
     });
   }
@@ -121,7 +136,7 @@ const registerData = {
   }
 
   handleWhatsApp(): void {
-    window.open('https://wa.me/966548290509?text=أحتاج مساعدة في التسجيل كمغسلة', '_blank');
+    window.open('https://wa.me/966548290509?text=أحتاج مساعدة في التسجيل كعميل', '_blank');
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

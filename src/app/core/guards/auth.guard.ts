@@ -1,23 +1,17 @@
-import { Injectable } from '@angular/core';
-import { Router, UrlTree } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard {
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+export const authGuard: CanActivateFn = (route, state) => {
+  const router = inject(Router);
+  const authService = inject(AuthService);
 
-  canActivate(): boolean | UrlTree {
-    // Allow all access during development
+  if (authService.isAuthenticated()) {
     return true;
-    
-    // if (this.authService.isAuthenticated()) {
-    //   return true;
-    // }
-    // return this.router.createUrlTree(['/auth/signin']);
   }
-}
+
+  // Optional: Store the attempted URL for redirecting after login
+  // authService.redirectUrl = state.url;
+
+  return router.createUrlTree(['/auth/signin']);
+};

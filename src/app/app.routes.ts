@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './core/guards/auth.guard';
-import { RoleGuard } from './core/guards/role.guard';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -10,7 +10,7 @@ export const routes: Routes = [
   {
     path: 'auth',
     children: [
-            {
+      {
         path: 'selection',
         loadComponent: () => import('./pages/auth/selection/selection.component').then(m => m.SelectionComponent)
       },
@@ -25,41 +25,37 @@ export const routes: Routes = [
       {
         path: 'merchant-register',
         loadComponent: () => import('./pages/auth/merchant-register/merchant-register.component').then(m => m.MerchantRegisterComponent)
+      },
+      {
+        path: 'enter-code',
+        loadComponent: () => import('./pages/auth/enter-merchant-code/enter-merchant-code.component').then(m => m.EnterMerchantCodeComponent)
+      },
+      {
+        path: 'register/:merchantId',
+        loadComponent: () => import('./pages/auth/customer-register-merchant/customer-register-merchant.component').then(m => m.CustomerRegisterMerchantComponent)
       }
     ]
   },
   {
     path: 'customer',
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [authGuard, roleGuard],
     data: { role: 'customer' },
     children: [
       {
         path: 'dashboard',
         loadComponent: () => import('./pages/Customer/customer-dashboard/customer-dashboard.component').then(m => m.CustomerDashboardComponent)
-      },
-      {
-        path: 'wallet',
-        loadComponent: () => import('./pages/Customer/customer-wallet/customer-wallet.component').then(m => m.CustomerWalletComponent)
-      },
-      {
-        path: 'rewards',
-        loadComponent: () => import('./pages/Customer/customer-rewards/customer-rewards.component').then(m => m.CustomerRewardsComponent)
-      },
-      {
-        path: 'washes',
-        loadComponent: () => import('./pages/Customer/customer-washes/customer-washes.component').then(m => m.CustomerWashesComponent)
-      },
-      {
-        path: 'notifications',
-        loadComponent: () => import('./pages/Customer/customer-notifications/customer-notifications.component').then(m => m.CustomerNotificationsComponent)
       }
     ]
   },
   {
     path: 'merchant',
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [authGuard, roleGuard],
     data: { role: 'merchant' },
     children: [
+      {
+        path: 'inactive',
+        loadComponent: () => import('./pages/Merchant/merchant-inactive/merchant-inactive.component').then(m => m.MerchantInactiveComponent)
+      },
       {
         path: 'dashboard',
         loadComponent: () => import('./pages/Merchant/merchant-dashboard/merchant-dashboard.component').then(m => m.MerchantDashboardComponent)
@@ -80,16 +76,12 @@ export const routes: Routes = [
   },
   {
     path: 'superadmin',
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [authGuard, roleGuard],
     data: { role: 'superadmin' },
     children: [
       {
         path: 'dashboard',
         loadComponent: () => import('./pages/superadmin/super-admin-dashboard/super-admin-dashboard.component').then(m => m.SuperAdminDashboardComponent)
-      },
-      {
-        path: 'customers',
-        loadComponent: () => import('./pages/superadmin/customers/customers.component').then(m => m.CustomersComponent)
       },
       {
         path: 'merchant-details',
@@ -98,11 +90,7 @@ export const routes: Routes = [
       {
         path: 'merchant-details/:id',
         loadComponent: () => import('./pages/superadmin/merchant-details/merchant-details.component').then(m => m.MerchantDetailsComponent)
-      },
-      {
-        path: 'revenue',
-        loadComponent: () => import('./pages/superadmin/system-revenue/system-revenue.component').then(m => m.SystemRevenueComponent)
-      }, 
+      }
       //  {
       //   path: 'platform-settings',
       //   loadComponent: () => import('./pages/superadmin/platform-settings/platform-settings.component').then(m => m.PlatformSettingsComponent)

@@ -1,4 +1,6 @@
+// src/environments/environment.prod.ts - Production Environment
 export const environment = {
   production: true,
-  apiUrl: 'https://hostapi.runasp.net/api'
+  apiUrl: 'https://smartpathapi.runasp.net/api',
+  appName: 'DigitalPass'
 };

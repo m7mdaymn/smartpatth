@@ -15,13 +15,8 @@
         </div>
         
         <div class="header-actions">
-          <button class="save-btn" (click)="saveSettings()" [disabled]="isSaving">
-            <span *ngIf="!isSaving">💾 حفظ التغييرات</span>
-            <span *ngIf="isSaving" class="saving">
-              <span class="spinner"></span>
-              جاري الحفظ...
-            </span>
-          </button>
+        <button class="header-btn back-btn" (click)="goBack()">← العودة</button>
+
           <button class="refresh-btn" (click)="loadSettings()">
             <span>🔄 تحديث</span>
           </button>
@@ -96,33 +91,6 @@
 
         <!-- Merchants Table -->
         <div class="merchants-table-container">
-          <div class="table-header">
-            <div class="search-box">
-              <input 
-                type="text" 
-                [(ngModel)]="searchTerm"
-                (input)="filterMerchants()"
-                placeholder="ابحث عن مغسلة..."
-                dir="rtl"
-              >
-              <span class="search-icon">🔍</span>
-            </div>
-            
-            <div class="table-actions">
-              <button class="export-btn" (click)="exportMerchants()">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M2 8V14H14V8M5.33333 6L8 9.33333L10.6667 6M8 1.33333V9.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                تصدير
-              </button>
-              <button class="add-btn" (click)="addMerchant()">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 2.66667V13.3333M2.66667 8H13.3333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                إضافة متجر
-              </button>
-            </div>
-          </div>
 
           <div class="table-wrapper">
             <table class="merchants-table">
@@ -134,17 +102,19 @@
                   <th>الباقة</th>
                   <th>العملاء</th>
                   <th>الغسلات</th>
-                  <th>تاريخ الانضمام</th>
+                  <th>بداية الاشتراك</th>
+                  <th>نهاية الاشتراك</th>
                   <th>الحالة</th>
                   <th>الإجراءات</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let merchant of filteredMerchants" class="table-row">
+                <tr *ngFor="let merchant of filteredMerchants()" class="table-row" [class.pending-row]="merchant.status === 'inactive' || merchant.status === 'pending' || merchant.status === 'awaiting_approval'">
                   <td>
                     <div class="merchant-info">
                       <span class="merchant-name">{{ merchant.businessName }}</span>
                       <span class="merchant-email">{{ merchant.email }}</span>
+                      <span class="merchant-phone" *ngIf="merchant.phone">{{ merchant.phone }}</span>
                     </div>
                   </td>
                   <td>{{ merchant.ownerName }}</td>
@@ -168,14 +138,17 @@
                     <span class="washes-count">{{ merchant.totalWashes }}</span>
                   </td>
                   <td>
-                    <span class="join-date">{{ formatDate(merchant.joinDate) }}</span>
+                    <span class="date-badge start-date">{{ formatDate(merchant.subscriptionStartDate) }}</span>
+                  </td>
+                  <td>
+                    <span class="date-badge end-date">{{ formatDate(merchant.subscriptionEndDate) }}</span>
                   </td>
                   <td>
                     <span 
                       class="status-badge" 
                       [class.active]="merchant.status === 'active'"
                       [class.inactive]="merchant.status === 'inactive'"
-                      [class.pending]="merchant.status === 'pending'"
+                      [class.pending]="merchant.status === 'pending' || merchant.status === 'awaiting_approval'"
                     >
                       {{ getStatusText(merchant.status) }}
                     </span>
@@ -196,9 +169,10 @@
                         [class.deactivate]="merchant.status === 'active'"
                         [class.activate]="merchant.status !== 'active'"
                         (click)="toggleMerchantStatus(merchant.id)"
-                        title="تفعيل/إيقاف"
+                        [title]="merchant.status === 'active' ? 'إيقاف الحساب' : 'تفعيل الحساب'"
                       >
-                        {{ merchant.status === 'active' ? 'إيقاف' : 'تفعيل' }}
+                        <span *ngIf="merchant.status === 'active'">⏸️ إيقاف</span>
+                        <span *ngIf="merchant.status !== 'active'">✅ تفعيل</span>
                       </button>
                     </div>
                   </td>
@@ -206,7 +180,7 @@
               </tbody>
             </table>
             
-            <div *ngIf="filteredMerchants.length === 0" class="no-results">
+            <div *ngIf="filteredMerchants().length === 0" class="no-results">
               <span class="no-results-icon">🏪</span>
               <p>لا توجد نتائج مطابقة</p>
             </div>
@@ -291,16 +265,6 @@
                   {{ ((statistics.basicPlanCount / statistics.totalBusinesses) * 100).toFixed(1) }}%
                 </span>
               </div>
-              <div class="plan-details">
-                <div class="detail-item">
-                  <span class="detail-label">متوسط العملاء:</span>
-                  <span class="detail-value">{{ statistics.basicAvgCustomers }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">متوسط الغسلات:</span>
-                  <span class="detail-value">{{ statistics.basicAvgWashes }}</span>
-                </div>
-              </div>
             </div>
             
             <div class="plan-card pro-plan">
@@ -318,49 +282,6 @@
                 <span class="progress-percent">
                   {{ ((statistics.proPlanCount / statistics.totalBusinesses) * 100).toFixed(1) }}%
                 </span>
-              </div>
-              <div class="plan-details">
-                <div class="detail-item">
-                  <span class="detail-label">متوسط العملاء:</span>
-                  <span class="detail-value">{{ statistics.proAvgCustomers }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">متوسط الغسلات:</span>
-                  <span class="detail-value">{{ statistics.proAvgWashes }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Activity Summary -->
-        <div class="activity-summary">
-          <h3>ملخص النشاط</h3>
-          <div class="activity-grid">
-            <div class="activity-card">
-              <div class="activity-icon">📈</div>
-              <div class="activity-content">
-                <h4>الغسلات الشهرية</h4>
-                <div class="activity-value">{{ statistics.last30DaysWashes }}</div>
-                <div class="activity-trend positive">+12.5% عن الشهر الماضي</div>
-              </div>
-            </div>
-            
-            <div class="activity-card">
-              <div class="activity-icon">💼</div>
-              <div class="activity-content">
-                <h4>المغاسل النشطة</h4>
-                <div class="activity-value">{{ statistics.activeBusinesses }}</div>
-                <div class="activity-trend positive">+{{ statistics.activeBusinessesGrowth }}%</div>
-              </div>
-            </div>
-            
-            <div class="activity-card">
-              <div class="activity-icon">⚡</div>
-              <div class="activity-content">
-                <h4>متوسط الغسلات</h4>
-                <div class="activity-value">{{ statistics.avgWashesPerBusiness }}</div>
-                <div class="activity-trend positive">+{{ statistics.avgWashesGrowth }}%</div>
               </div>
             </div>
           </div>
@@ -591,4 +512,191 @@
       </div>
     </div>
   </main>
+
+  <!-- Edit Merchant Modal -->
+  <div *ngIf="isEditModalOpen()" class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>تعديل بيانات المتجر</h2>
+        <button class="close-btn" (click)="closeEditModal()">✕</button>
+      </div>
+      
+      <form class="edit-form" (ngSubmit)="saveEditedMerchant()">
+        <div class="form-group">
+          <label for="businessName">اسم المتجر:</label>
+          <input 
+            id="businessName"
+            type="text" 
+            [(ngModel)]="editFormData().businessName"
+            name="businessName"
+            placeholder="اسم متجر السيارات"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="ownerName">اسم المالك:</label>
+          <input 
+            id="ownerName"
+            type="text" 
+            [(ngModel)]="editFormData().ownerName"
+            name="ownerName"
+            placeholder="اسم مالك المتجر"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="city">المدينة:</label>
+          <input 
+            id="city"
+            type="text" 
+            [(ngModel)]="editFormData().city"
+            name="city"
+            placeholder="اسم المدينة"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="plan">الباقة:</label>
+          <select 
+            id="plan"
+            [(ngModel)]="editFormData().plan"
+            name="plan"
+            class="form-input"
+            required
+          >
+            <option value="basic">Basic</option>
+            <option value="pro">Pro</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button 
+            type="button" 
+            class="cancel-btn"
+            (click)="closeEditModal()"
+            [disabled]="isSaving()"
+          >
+            إلغاء
+          </button>
+          <button 
+            type="submit" 
+            class="save-btn"
+            [disabled]="isSaving()"
+          >
+            <span *ngIf="!isSaving()">💾 حفظ التغييرات</span>
+            <span *ngIf="isSaving()" class="saving">
+              <span class="spinner"></span>
+              جاري الحفظ...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Merchant Modal -->
+  <div *ngIf="isAddModalOpen()" class="modal-overlay" (click)="closeAddModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>إضافة متجر جديد</h2>
+        <button class="close-btn" (click)="closeAddModal()">✕</button>
+      </div>
+      
+      <form class="edit-form" (ngSubmit)="saveNewMerchant()">
+        <div class="form-group">
+          <label for="addBusinessName">اسم المتجر:</label>
+          <input 
+            id="addBusinessName"
+            type="text" 
+            [(ngModel)]="addFormData().businessName"
+            name="businessName"
+            placeholder="اسم متجر السيارات"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="addOwnerName">اسم المالك:</label>
+          <input 
+            id="addOwnerName"
+            type="text" 
+            [(ngModel)]="addFormData().ownerName"
+            name="ownerName"
+            placeholder="اسم مالك المتجر"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="addEmail">البريد الإلكتروني:</label>
+          <input 
+            id="addEmail"
+            type="email" 
+            [(ngModel)]="addFormData().email"
+            name="email"
+            placeholder="البريد الإلكتروني"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="addCity">المدينة:</label>
+          <input 
+            id="addCity"
+            type="text" 
+            [(ngModel)]="addFormData().city"
+            name="city"
+            placeholder="اسم المدينة"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="addPlan">الباقة:</label>
+          <select 
+            id="addPlan"
+            [(ngModel)]="addFormData().plan"
+            name="plan"
+            class="form-input"
+            required
+          >
+            <option value="basic">Basic</option>
+            <option value="pro">Pro</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button 
+            type="button" 
+            class="cancel-btn"
+            (click)="closeAddModal()"
+            [disabled]="isSaving()"
+          >
+            إلغاء
+          </button>
+          <button 
+            type="submit" 
+            class="save-btn"
+            [disabled]="isSaving()"
+          >
+            <span *ngIf="!isSaving()">➕ إضافة التاجر</span>
+            <span *ngIf="isSaving()" class="saving">
+              <span class="spinner"></span>
+              جاري الإضافة...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
